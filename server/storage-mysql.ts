@@ -38,6 +38,13 @@ export interface IStorage {
   initializeDatabase(): Promise<void>;
 }
 
+console.log("Initializing MySQL connection with:", {
+  host: process.env.MYSQL_HOST,
+  port: process.env.MYSQL_PORT,
+  user: process.env.MYSQL_USER,
+  database: process.env.MYSQL_DATABASE,
+});
+
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   port: parseInt(process.env.MYSQL_PORT || "3306"),
@@ -48,11 +55,13 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 20,
   enableKeepAlive: true,
+  enableWorker: true,
   decimalNumbers: true,
+  connectTimeout: 30000,
 });
 
 pool.on("error", (err: any) => {
-  console.error("MySQL Pool error:", err.message);
+  console.error("MySQL Pool error:", err.code, err.message);
 });
 
 pool.on("connection", (connection) => {
@@ -74,12 +83,14 @@ export class MySQLStorage implements IStorage {
 
     let connection: any;
     try {
+      console.log("Attempting to connect to MySQL database...");
       connection = await Promise.race([
         pool.getConnection(),
-        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 15000))
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout after 30s")), 30000))
       ]);
+      console.log("MySQL connection established successfully");
     } catch (error: any) {
-      console.warn("Database initialization delayed, will retry:", error.message);
+      console.error("Database initialization error:", error.code || "UNKNOWN", error.message);
       return;
     }
     
