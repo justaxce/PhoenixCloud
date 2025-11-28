@@ -4,7 +4,7 @@ import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCurrency } from "./CurrencyContext";
-import logoImage from "@assets/a7df999605adaa0fbe275d510814eee2_1764296940838.webp";
+import logoImage from "@assets/phoenix-logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
