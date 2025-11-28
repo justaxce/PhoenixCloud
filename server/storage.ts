@@ -385,39 +385,39 @@ export class PostgresStorage implements IStorage {
     await sql`
       UPDATE settings SET 
         currency = ${settings.currency},
-        supportLink = ${settings.supportLink},
-        redirectLink = ${settings.redirectLink},
-        instagramLink = ${settings.instagramLink},
-        youtubeLink = ${settings.youtubeLink},
+        supportlink = ${settings.supportLink},
+        redirectlink = ${settings.redirectLink},
+        instagramlink = ${settings.instagramLink},
+        youtubelink = ${settings.youtubeLink},
         email = ${settings.email},
-        documentationLink = ${settings.documentationLink},
-        heroTitleLine1 = ${settings.heroTitleLine1},
-        heroTitleLine2 = ${settings.heroTitleLine2},
-        heroDescription = ${settings.heroDescription},
-        stat1Value = ${settings.stat1Value},
-        stat1Label = ${settings.stat1Label},
-        stat2Value = ${settings.stat2Value},
-        stat2Label = ${settings.stat2Label},
-        stat3Value = ${settings.stat3Value},
-        stat3Label = ${settings.stat3Label},
-        featuresSectionTitle = ${settings.featuresSectionTitle},
-        featuresSectionDescription = ${settings.featuresSectionDescription},
-        feature1Title = ${settings.feature1Title},
-        feature1Description = ${settings.feature1Description},
-        feature2Title = ${settings.feature2Title},
-        feature2Description = ${settings.feature2Description},
-        feature3Title = ${settings.feature3Title},
-        feature3Description = ${settings.feature3Description},
-        feature4Title = ${settings.feature4Title},
-        feature4Description = ${settings.feature4Description},
-        feature5Title = ${settings.feature5Title},
-        feature5Description = ${settings.feature5Description},
-        feature6Title = ${settings.feature6Title},
-        feature6Description = ${settings.feature6Description},
-        ctaTitle = ${settings.ctaTitle},
-        ctaDescription = ${settings.ctaDescription},
-        backgroundImageLight = ${settings.backgroundImageLight},
-        backgroundImageDark = ${settings.backgroundImageDark}
+        documentationlink = ${settings.documentationLink},
+        herotitleline1 = ${settings.heroTitleLine1},
+        herotitleline2 = ${settings.heroTitleLine2},
+        herodescription = ${settings.heroDescription},
+        stat1value = ${settings.stat1Value},
+        stat1label = ${settings.stat1Label},
+        stat2value = ${settings.stat2Value},
+        stat2label = ${settings.stat2Label},
+        stat3value = ${settings.stat3Value},
+        stat3label = ${settings.stat3Label},
+        featuressectiontitle = ${settings.featuresSectionTitle},
+        featuressectiondescription = ${settings.featuresSectionDescription},
+        feature1title = ${settings.feature1Title},
+        feature1description = ${settings.feature1Description},
+        feature2title = ${settings.feature2Title},
+        feature2description = ${settings.feature2Description},
+        feature3title = ${settings.feature3Title},
+        feature3description = ${settings.feature3Description},
+        feature4title = ${settings.feature4Title},
+        feature4description = ${settings.feature4Description},
+        feature5title = ${settings.feature5Title},
+        feature5description = ${settings.feature5Description},
+        feature6title = ${settings.feature6Title},
+        feature6description = ${settings.feature6Description},
+        ctatitle = ${settings.ctaTitle},
+        ctadescription = ${settings.ctaDescription},
+        backgroundimagelight = ${settings.backgroundImageLight},
+        backgroundimagedark = ${settings.backgroundImageDark}
       WHERE id = 1
     `;
     return settings;
@@ -431,13 +431,13 @@ export class PostgresStorage implements IStorage {
   async createAdminUser(username: string, passwordHash: string): Promise<any> {
     await this.initializeDatabase();
     const id = randomUUID();
-    await sql`INSERT INTO admin_users (id, username, passwordHash) VALUES (${id}, ${username}, ${passwordHash})`;
+    await sql`INSERT INTO admin_users (id, username, passwordhash) VALUES (${id}, ${username}, ${passwordHash})`;
     return { id, username };
   }
 
   async updateAdminUser(id: string, passwordHash: string): Promise<any | undefined> {
     await this.initializeDatabase();
-    await sql`UPDATE admin_users SET passwordHash = ${passwordHash} WHERE id = ${id}`;
+    await sql`UPDATE admin_users SET passwordhash = ${passwordHash} WHERE id = ${id}`;
     const result = await sql`SELECT id, username FROM admin_users WHERE id = ${id}`;
     return result[0];
   }
