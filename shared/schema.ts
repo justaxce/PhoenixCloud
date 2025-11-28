@@ -1,18 +1,60 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface Subcategory {
+  id: string;
+  name: string;
+  slug: string;
+  categoryId: string;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  period: string;
+  features: string[];
+  popular?: boolean;
+  categoryId: string;
+  subcategoryId: string;
+}
+
+export interface Settings {
+  discordLink: string;
+}
+
+export const categorySchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const subcategorySchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
+  categoryId: z.string().min(1),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export const planSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  price: z.string().min(1),
+  period: z.string().min(1),
+  features: z.array(z.string()),
+  popular: z.boolean().optional(),
+  categoryId: z.string().min(1),
+  subcategoryId: z.string().min(1),
+});
+
+export const settingsSchema = z.object({
+  discordLink: z.string().url(),
+});
+
+export type InsertCategory = z.infer<typeof categorySchema>;
+export type InsertSubcategory = z.infer<typeof subcategorySchema>;
+export type InsertPlan = z.infer<typeof planSchema>;

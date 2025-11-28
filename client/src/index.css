@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE */
+/* LIGHT MODE - DEEP RED */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
@@ -18,34 +18,34 @@
   --sidebar: 0 0% 96%;
   --sidebar-foreground: 0 0% 9%;
   --sidebar-border: 0 0% 92%;
-  --sidebar-primary: 24 95% 53%;
+  --sidebar-primary: 0 84% 45%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 24 15% 88%;
+  --sidebar-accent: 0 15% 88%;
   --sidebar-accent-foreground: 0 0% 9%;
-  --sidebar-ring: 24 95% 53%;
+  --sidebar-ring: 0 84% 45%;
   --popover: 0 0% 94%;
   --popover-foreground: 0 0% 9%;
   --popover-border: 0 0% 90%;
-  --primary: 24 95% 53%;
+  --primary: 0 84% 45%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 24 8% 90%;
+  --secondary: 0 8% 90%;
   --secondary-foreground: 0 0% 9%;
-  --muted: 24 6% 92%;
+  --muted: 0 6% 92%;
   --muted-foreground: 0 0% 40%;
-  --accent: 24 12% 90%;
+  --accent: 0 12% 90%;
   --accent-foreground: 0 0% 9%;
   --destructive: 0 84% 45%;
   --destructive-foreground: 0 0% 98%;
   --input: 0 0% 75%;
-  --ring: 24 95% 53%;
-  --chart-1: 24 95% 45%;
-  --chart-2: 30 90% 40%;
-  --chart-3: 18 85% 38%;
-  --chart-4: 35 80% 42%;
-  --chart-5: 20 88% 35%;
-  --font-sans: Open Sans, sans-serif;
+  --ring: 0 84% 45%;
+  --chart-1: 0 84% 45%;
+  --chart-2: 5 75% 45%;
+  --chart-3: 10 70% 45%;
+  --chart-4: 15 75% 45%;
+  --chart-5: 20 70% 45%;
+  --font-sans: Inter, system-ui, sans-serif;
   --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
+  --font-mono: JetBrains Mono, monospace;
   --radius: .5rem;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
@@ -88,11 +88,11 @@
 }
 
 .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255,165,0, .15);
+  --badge-outline: rgba(255,165,0, .08);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255,165,0, .05);
+  --elevate-2: rgba(255,165,0, .12);
   --background: 0 0% 7%;
   --foreground: 0 0% 95%;
   --border: 0 0% 15%;
@@ -102,31 +102,31 @@
   --sidebar: 0 0% 11%;
   --sidebar-foreground: 0 0% 95%;
   --sidebar-border: 0 0% 14%;
-  --sidebar-primary: 24 95% 53%;
+  --sidebar-primary: 39 100% 50%;
   --sidebar-primary-foreground: 0 0% 9%;
-  --sidebar-accent: 24 10% 16%;
+  --sidebar-accent: 39 15% 26%;
   --sidebar-accent-foreground: 0 0% 95%;
-  --sidebar-ring: 24 95% 53%;
+  --sidebar-ring: 39 100% 50%;
   --popover: 0 0% 13%;
   --popover-foreground: 0 0% 95%;
   --popover-border: 0 0% 16%;
-  --primary: 24 95% 53%;
+  --primary: 39 100% 50%;
   --primary-foreground: 0 0% 9%;
-  --secondary: 24 6% 18%;
+  --secondary: 39 15% 18%;
   --secondary-foreground: 0 0% 95%;
-  --muted: 24 5% 17%;
+  --muted: 39 10% 17%;
   --muted-foreground: 0 0% 65%;
-  --accent: 24 8% 16%;
+  --accent: 39 20% 26%;
   --accent-foreground: 0 0% 95%;
   --destructive: 0 84% 45%;
   --destructive-foreground: 0 0% 98%;
   --input: 0 0% 30%;
-  --ring: 24 95% 53%;
-  --chart-1: 24 95% 65%;
-  --chart-2: 30 90% 70%;
-  --chart-3: 18 85% 68%;
-  --chart-4: 35 80% 72%;
-  --chart-5: 20 88% 75%;
+  --ring: 39 100% 50%;
+  --chart-1: 39 100% 55%;
+  --chart-2: 35 100% 50%;
+  --chart-3: 43 100% 50%;
+  --chart-4: 39 100% 45%;
+  --chart-5: 35 95% 50%;
   --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.00);
   --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0.00), 0px 1px 2px -1px hsl(0 0% 0% / 0.00);
@@ -170,8 +170,31 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(255, 165, 0, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.05) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(255, 165, 0, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.1) 0%, transparent 50%);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
   }
 }
 
