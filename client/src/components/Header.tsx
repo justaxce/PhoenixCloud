@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Flame, ChevronDown, Globe } from "lucide-react";
+import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCurrency } from "./CurrencyContext";
+import logoImage from "@assets/generated_images/phoenix_cloud_orange_logo_transparent.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,9 +48,7 @@ export function Header({ categories = [] }: HeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
         <Link href="/" className="flex items-center gap-2" data-testid="link-logo">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary">
-            <Flame className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src={logoImage} alt="Phoenix Cloud" className="h-9 w-9" />
           <span className="text-xl font-bold">Phoenix Cloud</span>
         </Link>
 
