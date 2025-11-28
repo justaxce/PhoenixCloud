@@ -66,7 +66,8 @@ export class MySQLStorage implements IStorage {
         CREATE TABLE IF NOT EXISTS categories (
           id VARCHAR(36) PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
-          slug VARCHAR(255) NOT NULL
+          slug VARCHAR(255) NOT NULL,
+          UNIQUE KEY unique_slug (slug)
         )
       `);
 
@@ -75,7 +76,10 @@ export class MySQLStorage implements IStorage {
           id VARCHAR(36) PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
           slug VARCHAR(255) NOT NULL,
-          categoryId VARCHAR(36) NOT NULL
+          categoryId VARCHAR(36) NOT NULL,
+          UNIQUE KEY unique_slug (slug),
+          INDEX idx_category (categoryId),
+          FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
         )
       `);
 
@@ -90,7 +94,11 @@ export class MySQLStorage implements IStorage {
           features JSON,
           popular BOOLEAN DEFAULT FALSE,
           categoryId VARCHAR(36),
-          subcategoryId VARCHAR(36)
+          subcategoryId VARCHAR(36),
+          INDEX idx_category (categoryId),
+          INDEX idx_subcategory (subcategoryId),
+          FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE SET NULL,
+          FOREIGN KEY (subcategoryId) REFERENCES subcategories(id) ON DELETE SET NULL
         )
       `);
 
@@ -118,8 +126,9 @@ export class MySQLStorage implements IStorage {
       await connection.query(`
         CREATE TABLE IF NOT EXISTS admin_users (
           id VARCHAR(36) PRIMARY KEY,
-          username VARCHAR(255) NOT NULL UNIQUE,
-          passwordHash VARCHAR(255) NOT NULL
+          username VARCHAR(255) NOT NULL,
+          passwordHash VARCHAR(255) NOT NULL,
+          UNIQUE KEY unique_username (username)
         )
       `);
 
