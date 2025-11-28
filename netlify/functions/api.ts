@@ -1,6 +1,13 @@
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import { scryptSync, timingSafeEqual, randomUUID } from "crypto";
-import mysql from "mysql2/promise";
+
+let mysql: any = null;
+
+try {
+  mysql = require("mysql2/promise");
+} catch (e) {
+  console.warn("mysql2 not available in Netlify function");
+}
 
 const SALT = "phoenix-salt";
 
@@ -20,6 +27,9 @@ function verifyPassword(password: string, storedHash: string): boolean {
 }
 
 async function getConnection() {
+  if (!mysql) {
+    throw new Error("MySQL module not available");
+  }
   return mysql.createConnection({
     host: process.env.MYSQL_HOST,
     port: parseInt(process.env.MYSQL_PORT || "3306"),
@@ -54,9 +64,15 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
   const pathMatch = event.path.match(/\/api(\/.*)/);
   const apiPath = pathMatch ? pathMatch[1] : event.path.replace("/.netlify/functions/api", "");
   const method = event.httpMethod;
-  const body = event.body ? JSON.parse(event.body) : {};
+  
+  let body: any = {};
+  try {
+    body = event.body ? JSON.parse(event.body) : {};
+  } catch (e) {
+    return jsonResponse(400, { error: "Invalid JSON" });
+  }
 
-  let connection;
+  let connection: any;
   try {
     connection = await getConnection();
 
