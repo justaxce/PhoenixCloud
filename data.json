@@ -60,6 +60,38 @@
       "id": "e0a16510-449e-467c-b22e-fc2095ead393"
     }
   ],
+  "faqs": [
+    {
+      "id": "faq-1",
+      "question": "How do I get started with Phoenix Cloud?",
+      "answer": "Simply choose a plan that fits your needs, click 'Order Now', and you'll be redirected to our Discord server where our team will help you set up your hosting within minutes."
+    },
+    {
+      "id": "faq-2",
+      "question": "What payment methods do you accept?",
+      "answer": "We accept various payment methods including PayPal, credit/debit cards, and cryptocurrency. Contact our sales team on Discord for more details."
+    },
+    {
+      "id": "faq-3",
+      "question": "What is your uptime guarantee?",
+      "answer": "We offer a 99.9% uptime SLA across all our hosting plans. If we fail to meet this guarantee, you'll receive service credits as compensation."
+    },
+    {
+      "id": "faq-4",
+      "question": "Do you offer DDoS protection?",
+      "answer": "Yes, all our plans include enterprise-grade DDoS protection at no extra cost. Our network can mitigate attacks up to 1Tbps."
+    },
+    {
+      "id": "faq-5",
+      "question": "Can I upgrade my plan later?",
+      "answer": "Absolutely! You can upgrade your plan at any time. Our team will help migrate your services with minimal downtime."
+    },
+    {
+      "id": "faq-6",
+      "question": "What kind of support do you offer?",
+      "answer": "We provide 24/7 support through Discord. Our expert team is always ready to help with any technical issues or questions."
+    }
+  ],
   "settings": {
     "currency": "usd",
     "supportLink": "https://discord.gg/EX6Dydyar5",

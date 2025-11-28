@@ -60,7 +60,13 @@ export class JsonStorage implements IStorage {
       if (fs.existsSync(DATA_FILE)) {
         const content = fs.readFileSync(DATA_FILE, "utf-8");
         console.log("Loaded data from", DATA_FILE);
-        return JSON.parse(content);
+        const data = JSON.parse(content);
+        // Ensure faqs array exists (migration for old data files)
+        if (!data.faqs) {
+          data.faqs = [];
+          this.saveDataSync(data);
+        }
+        return data;
       }
     } catch (error) {
       console.error("Error loading data file:", error);
@@ -218,7 +224,7 @@ export class JsonStorage implements IStorage {
 
   // FAQs
   async getFAQs(): Promise<FAQ[]> {
-    return this.data.faqs;
+    return this.data.faqs || [];
   }
 
   async createFAQ(question: string, answer: string): Promise<FAQ> {

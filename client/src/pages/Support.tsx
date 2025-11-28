@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,39 +19,39 @@ interface Category {
   subcategories: { id: string; name: string; slug: string }[];
 }
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+}
+
 interface SupportProps {
   categories?: Category[];
   discordLink?: string;
 }
 
-const faqs = [
-  {
-    question: "How do I get started with Phoenix Cloud?",
-    answer: "Simply choose a plan that fits your needs, click 'Order Now', and you'll be redirected to our Discord server where our team will help you set up your hosting within minutes.",
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer: "We accept various payment methods including PayPal, credit/debit cards, and cryptocurrency. Contact our sales team on Discord for more details.",
-  },
-  {
-    question: "What is your uptime guarantee?",
-    answer: "We offer a 99.9% uptime SLA across all our hosting plans. If we fail to meet this guarantee, you'll receive service credits as compensation.",
-  },
-  {
-    question: "Do you offer DDoS protection?",
-    answer: "Yes, all our plans include enterprise-grade DDoS protection at no extra cost. Our network can mitigate attacks up to 1Tbps.",
-  },
-  {
-    question: "Can I upgrade my plan later?",
-    answer: "Absolutely! You can upgrade your plan at any time. Our team will help migrate your services with minimal downtime.",
-  },
-  {
-    question: "What kind of support do you offer?",
-    answer: "We provide 24/7 support through Discord. Our expert team is always ready to help with any technical issues or questions.",
-  },
-];
-
 export default function Support({ categories = [], discordLink = "#" }: SupportProps) {
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        const res = await fetch("/api/faqs");
+        if (res.ok) {
+          const data = await res.json();
+          setFaqs(data);
+        }
+      } catch (error) {
+        console.error("Error fetching FAQs:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFAQs();
+  }, []);
+
   const handleDiscordClick = () => {
     if (discordLink && discordLink !== "#") {
       window.open(discordLink, "_blank");
@@ -142,18 +143,24 @@ export default function Support({ categories = [], discordLink = "#" }: SupportP
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-              <Accordion type="single" collapsible className="w-full">
-                {faqs.map((faq, index) => (
-                  <AccordionItem key={index} value={`item-${index}`} data-testid={`faq-item-${index}`}>
-                    <AccordionTrigger className="text-left">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+              {isLoading ? (
+                <div className="text-center text-muted-foreground">Loading FAQs...</div>
+              ) : faqs.length === 0 ? (
+                <div className="text-center text-muted-foreground">No FAQs available yet</div>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {faqs.map((faq, index) => (
+                    <AccordionItem key={faq.id} value={`item-${index}`} data-testid={`faq-item-${index}`}>
+                      <AccordionTrigger className="text-left">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
             </div>
           </div>
         </section>
