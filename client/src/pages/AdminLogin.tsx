@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Flame } from "lucide-react";
+import phoenixLogo from "@assets/phoenix-logo.png";
 
 export default function AdminLogin() {
   const [, navigate] = useLocation();
@@ -42,9 +42,7 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-              <Flame className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={phoenixLogo} alt="Phoenix Cloud Logo" className="h-12 w-12" data-testid="img-admin-logo" />
           </div>
           <CardTitle className="text-2xl">Phoenix Cloud Admin</CardTitle>
           <CardDescription>Enter your admin credentials to access the panel</CardDescription>
