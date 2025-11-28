@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { ArrowRight, Server, Shield, Zap, Cloud, Database, Cpu, HardDrive, Globe, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TbBrandMinecraft } from "react-icons/tb";
+import { useState, useEffect } from "react";
 import type { Settings } from "@shared/schema";
 
 const floatingIcons = [
@@ -19,7 +20,34 @@ interface HeroProps {
   settings?: Settings | null;
 }
 
+// Default gradient for fallback
+const defaultGradients = {
+  light: "linear-gradient(135deg, rgba(255, 127, 80, 0.1) 0%, rgba(70, 130, 180, 0.05) 100%)",
+  dark: "linear-gradient(135deg, rgba(255, 165, 0, 0.15) 0%, rgba(70, 130, 180, 0.1) 100%)"
+};
+
 export function Hero({ settings }: HeroProps) {
+  const [isDark, setIsDark] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    // Check initial theme
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+      setImageFailed(false);
+      setImageLoaded(false);
+    };
+
+    checkTheme();
+
+    // Listen for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
   const heroTitleLine1 = settings?.heroTitleLine1 || "Cloud Hosting That";
   const heroTitleLine2 = settings?.heroTitleLine2 || "Rises Above";
   const heroDescription = settings?.heroDescription || "Experience blazing-fast performance with Phoenix Cloud. 99.9% uptime guarantee, instant scaling, and 24/7 expert support.";
@@ -31,22 +59,41 @@ export function Hero({ settings }: HeroProps) {
   const stat3Label = settings?.stat3Label || "Expert Support";
   
   // Get background image for current theme
-  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
   const backgroundImage = isDark ? settings?.backgroundImageDark : settings?.backgroundImageLight;
+  
+  // Validate image URL
+  const isValidImageUrl = (url?: string) => {
+    if (!url || typeof url !== 'string') return false;
+    return url.trim().length > 0 && (url.startsWith('http') || url.startsWith('data:'));
+  };
+
+  const shouldShowImage = isValidImageUrl(backgroundImage) && !imageFailed;
 
   return (
     <section className="relative overflow-hidden">
-      {backgroundImage && (
-        <div 
-          className="absolute inset-0"
+      {/* Background image layer with error handling */}
+      {shouldShowImage && (
+        <img
+          src={backgroundImage}
+          alt="Hero background"
+          className="absolute inset-0 w-full h-full object-cover opacity-100"
           style={{
-            backgroundImage: `url('${backgroundImage}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
           }}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageFailed(true)}
         />
       )}
+      
+      {/* Fallback gradient if no image or image fails to load */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: isDark ? defaultGradients.dark : defaultGradients.light,
+          zIndex: shouldShowImage ? 0 : 1,
+        }}
+      />
+      
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
       

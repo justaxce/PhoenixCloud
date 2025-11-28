@@ -613,9 +613,9 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Background Images</CardTitle>
-                <CardDescription>Edit background images for light and dark themes</CardDescription>
+                <CardDescription>Edit background images for light and dark themes. If image is broken or inaccessible, a default gradient will show.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Light Theme Background Image</label>
                   <Input
@@ -625,6 +625,18 @@ export default function AdminDashboard() {
                     data-testid="input-bg-light"
                   />
                   <p className="text-xs text-muted-foreground">Supports direct links and Discord media links</p>
+                  {backgroundImageLight && (
+                    <div className="mt-3 border rounded-lg overflow-hidden h-32 bg-muted">
+                      <img
+                        src={backgroundImageLight}
+                        alt="Light theme preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Dark Theme Background Image</label>
@@ -635,6 +647,18 @@ export default function AdminDashboard() {
                     data-testid="input-bg-dark"
                   />
                   <p className="text-xs text-muted-foreground">Supports direct links and Discord media links</p>
+                  {backgroundImageDark && (
+                    <div className="mt-3 border rounded-lg overflow-hidden h-32 bg-muted">
+                      <img
+                        src={backgroundImageDark}
+                        alt="Dark theme preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
