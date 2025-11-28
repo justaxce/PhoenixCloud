@@ -233,9 +233,10 @@ export async function registerRoutes(
   app.post("/api/settings", async (req, res) => {
     try {
       const settings = settingsSchema.parse(req.body);
-      const updated = await storage.updateSettings(settings);
+      const updated = await storage.updateSettings(settings as any);
       res.json(updated);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Settings validation error:", error.message);
       res.status(400).json({ error: "Invalid input" });
     }
   });

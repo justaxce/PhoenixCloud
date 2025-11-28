@@ -71,11 +71,11 @@ export class MySQLStorage implements IStorage {
     try {
       connection = await Promise.race([
         pool.getConnection(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 5000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 15000))
       ]);
     } catch (error: any) {
       this.initialized = false;
-      console.error("Failed to get database connection:", error.message);
+      console.warn("Database initialization delayed, will retry:", error.message);
       return;
     }
     
@@ -251,12 +251,12 @@ export class MySQLStorage implements IStorage {
     try {
       conn = await Promise.race([
         pool.getConnection(),
-        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 5000))
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 15000))
       ]);
       return await conn.query(sql, values);
     } catch (error: any) {
-      if (error.message.includes("Queue limit") || error.message.includes("timeout")) {
-        console.warn("Connection pool issue:", error.message, "- retrying");
+      if (error.message.includes("Connection timeout")) {
+        console.warn("Database connection timeout - the database server may be slow to respond");
       }
       throw error;
     } finally {
