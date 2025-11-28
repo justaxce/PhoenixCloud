@@ -7,8 +7,9 @@ import {
   Gauge 
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import type { Settings } from "@shared/schema";
 
-const features = [
+const defaultFeatures = [
   {
     icon: Zap,
     title: "Blazing Fast",
@@ -41,16 +42,58 @@ const features = [
   },
 ];
 
-export function Features() {
+const icons = [Zap, Shield, Globe, Server, HeadphonesIcon, Gauge];
+
+interface FeaturesProps {
+  settings?: Settings | null;
+}
+
+export function Features({ settings }: FeaturesProps) {
+  const sectionTitle = settings?.featuresSectionTitle || "Why Choose Phoenix Cloud?";
+  const sectionDescription = settings?.featuresSectionDescription || "Built for performance, reliability, and ease of use.";
+
+  const features = [
+    {
+      icon: icons[0],
+      title: settings?.feature1Title || defaultFeatures[0].title,
+      description: settings?.feature1Description || defaultFeatures[0].description,
+    },
+    {
+      icon: icons[1],
+      title: settings?.feature2Title || defaultFeatures[1].title,
+      description: settings?.feature2Description || defaultFeatures[1].description,
+    },
+    {
+      icon: icons[2],
+      title: settings?.feature3Title || defaultFeatures[2].title,
+      description: settings?.feature3Description || defaultFeatures[2].description,
+    },
+    {
+      icon: icons[3],
+      title: settings?.feature4Title || defaultFeatures[3].title,
+      description: settings?.feature4Description || defaultFeatures[3].description,
+    },
+    {
+      icon: icons[4],
+      title: settings?.feature5Title || defaultFeatures[4].title,
+      description: settings?.feature5Description || defaultFeatures[4].description,
+    },
+    {
+      icon: icons[5],
+      title: settings?.feature6Title || defaultFeatures[5].title,
+      description: settings?.feature6Description || defaultFeatures[5].description,
+    },
+  ];
+
   return (
     <section id="features" className="py-24 bg-card/50">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Why Choose Phoenix Cloud?
+            {sectionTitle}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Built for performance, reliability, and ease of use.
+            {sectionDescription}
           </p>
         </div>
 

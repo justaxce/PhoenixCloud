@@ -37,7 +37,7 @@ export default function AdminDashboard() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [adminUsers, setAdminUsers] = useState<Array<{ id: string; username: string }>>([]);
-  const [settings, setSettings] = useState<SettingsType>({ discordLink: "" });
+  const [settings, setSettings] = useState<SettingsType>({ currency: "usd", supportLink: "", redirectLink: "" });
 
   const [supportLink, setSupportLink] = useState("");
   const [redirectLink, setRedirectLink] = useState("");
@@ -801,7 +801,7 @@ export default function AdminDashboard() {
                           <p className="text-sm text-muted-foreground">
                             {cat?.name} → {sub?.name}
                           </p>
-                          <p className="text-sm font-mono text-primary">{plan.price}</p>
+                          <p className="text-sm font-mono text-primary">${plan.priceUsd}/{plan.period}</p>
                         </div>
                         <div className="flex gap-2">
                           <Button

@@ -1,8 +1,16 @@
 import { Link } from "wouter";
 import { ArrowRight, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { Settings } from "@shared/schema";
 
-export function CTA() {
+interface CTAProps {
+  settings?: Settings | null;
+}
+
+export function CTA({ settings }: CTAProps) {
+  const ctaTitle = settings?.ctaTitle || "Ready to Rise Above?";
+  const ctaDescription = settings?.ctaDescription || "Join thousands of satisfied customers who trust Phoenix Cloud for their hosting needs. Get started in minutes.";
+
   return (
     <section className="py-24 page-enter">
       <div className="container mx-auto px-4">
@@ -13,11 +21,10 @@ export function CTA() {
           
           <div className="relative mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-primary-foreground md:text-4xl">
-              Ready to Rise Above?
+              {ctaTitle}
             </h2>
             <p className="mt-4 text-lg text-primary-foreground/80">
-              Join thousands of satisfied customers who trust Phoenix Cloud for their hosting needs. 
-              Get started in minutes.
+              {ctaDescription}
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link href="/plans">

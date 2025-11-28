@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { ArrowRight, Server, Shield, Zap, Cloud, Database, Cpu, HardDrive, Globe, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TbBrandMinecraft } from "react-icons/tb";
+import type { Settings } from "@shared/schema";
 
 const floatingIcons = [
   { Icon: TbBrandMinecraft, className: "top-[15%] left-[8%]", delay: "0s", size: "w-12 h-12" },
@@ -14,13 +15,26 @@ const floatingIcons = [
   { Icon: Box, className: "bottom-[20%] left-[20%]", delay: "1.8s", size: "w-6 h-6" },
 ];
 
-export function Hero() {
+interface HeroProps {
+  settings?: Settings | null;
+}
+
+export function Hero({ settings }: HeroProps) {
+  const heroTitleLine1 = settings?.heroTitleLine1 || "Cloud Hosting That";
+  const heroTitleLine2 = settings?.heroTitleLine2 || "Rises Above";
+  const heroDescription = settings?.heroDescription || "Experience blazing-fast performance with Phoenix Cloud. 99.9% uptime guarantee, instant scaling, and 24/7 expert support.";
+  const stat1Value = settings?.stat1Value || "99.9%";
+  const stat1Label = settings?.stat1Label || "Uptime SLA";
+  const stat2Value = settings?.stat2Value || "50+";
+  const stat2Label = settings?.stat2Label || "Global Locations";
+  const stat3Value = settings?.stat3Value || "24/7";
+  const stat3Label = settings?.stat3Label || "Expert Support";
+
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
       
-      {/* Floating Icons */}
       {floatingIcons.map(({ Icon, className, delay, size }, index) => (
         <div
           key={index}
@@ -42,13 +56,12 @@ export function Hero() {
           </div>
 
           <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-            Cloud Hosting That
-            <span className="block text-primary">Rises Above</span>
+            {heroTitleLine1}
+            <span className="block text-primary">{heroTitleLine2}</span>
           </h1>
 
           <p className="mt-6 text-lg text-muted-foreground md:text-xl">
-            Experience blazing-fast performance with Phoenix Cloud. 
-            99.9% uptime guarantee, instant scaling, and 24/7 expert support.
+            {heroDescription}
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -72,8 +85,8 @@ export function Hero() {
               <Zap className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">99.9%</p>
-              <p className="text-sm text-muted-foreground">Uptime SLA</p>
+              <p className="text-2xl font-bold">{stat1Value}</p>
+              <p className="text-sm text-muted-foreground">{stat1Label}</p>
             </div>
           </div>
 
@@ -82,8 +95,8 @@ export function Hero() {
               <Server className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">50+</p>
-              <p className="text-sm text-muted-foreground">Global Locations</p>
+              <p className="text-2xl font-bold">{stat2Value}</p>
+              <p className="text-sm text-muted-foreground">{stat2Label}</p>
             </div>
           </div>
 
@@ -92,8 +105,8 @@ export function Hero() {
               <Shield className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">24/7</p>
-              <p className="text-sm text-muted-foreground">Expert Support</p>
+              <p className="text-2xl font-bold">{stat3Value}</p>
+              <p className="text-sm text-muted-foreground">{stat3Label}</p>
             </div>
           </div>
         </div>
