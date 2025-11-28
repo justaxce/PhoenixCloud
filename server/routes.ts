@@ -100,6 +100,20 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/categories/:id", async (req, res) => {
+    try {
+      const { name, slug } = categorySchema.parse(req.body);
+      const category = await storage.updateCategory(req.params.id, name, slug);
+      if (category) {
+        res.json(category);
+      } else {
+        res.status(404).json({ error: "Category not found" });
+      }
+    } catch (error) {
+      res.status(400).json({ error: "Invalid input" });
+    }
+  });
+
   app.delete("/api/categories/:id", async (req, res) => {
     const success = await storage.deleteCategory(req.params.id);
     res.json({ success });
@@ -121,6 +135,20 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/subcategories/:id", async (req, res) => {
+    try {
+      const { name, slug } = subcategorySchema.parse(req.body);
+      const subcategory = await storage.updateSubcategory(req.params.id, name, slug);
+      if (subcategory) {
+        res.json(subcategory);
+      } else {
+        res.status(404).json({ error: "Subcategory not found" });
+      }
+    } catch (error) {
+      res.status(400).json({ error: "Invalid input" });
+    }
+  });
+
   app.delete("/api/subcategories/:id", async (req, res) => {
     const success = await storage.deleteSubcategory(req.params.id);
     res.json({ success });
@@ -137,6 +165,20 @@ export async function registerRoutes(
       const plan = planSchema.parse(req.body);
       const created = await storage.createPlan(plan);
       res.status(201).json(created);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid input" });
+    }
+  });
+
+  app.patch("/api/plans/:id", async (req, res) => {
+    try {
+      const plan = planSchema.parse(req.body);
+      const updated = await storage.updatePlan(req.params.id, plan);
+      if (updated) {
+        res.json(updated);
+      } else {
+        res.status(404).json({ error: "Plan not found" });
+      }
     } catch (error) {
       res.status(400).json({ error: "Invalid input" });
     }

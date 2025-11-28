@@ -49,6 +49,9 @@ export default function AdminDashboard() {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
   const [editingUser, setEditingUser] = useState<{ id: string; username: string } | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     loadData();
@@ -334,14 +337,27 @@ export default function AdminDashboard() {
                         <p className="font-medium">{cat.name}</p>
                         <p className="text-xs text-muted-foreground">/{cat.slug}</p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => confirmDelete("category", cat.id)}
-                        data-testid={`button-delete-category-${cat.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingCategory(cat);
+                            setShowAddCategory(true);
+                          }}
+                          data-testid={`button-edit-category-${cat.id}`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => confirmDelete("category", cat.id)}
+                          data-testid={`button-delete-category-${cat.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -379,14 +395,27 @@ export default function AdminDashboard() {
                             {cat?.name} / /{sub.slug}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => confirmDelete("subcategory", sub.id)}
-                          data-testid={`button-delete-subcategory-${sub.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingSubcategory(sub);
+                              setShowAddSubcategory(true);
+                            }}
+                            data-testid={`button-edit-subcategory-${sub.id}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => confirmDelete("subcategory", sub.id)}
+                            data-testid={`button-delete-subcategory-${sub.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -427,14 +456,27 @@ export default function AdminDashboard() {
                           </p>
                           <p className="text-sm font-mono text-primary">{plan.price}</p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => confirmDelete("plan", plan.id)}
-                          data-testid={`button-delete-plan-${plan.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingPlan(plan);
+                              setShowAddPlan(true);
+                            }}
+                            data-testid={`button-edit-plan-${plan.id}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => confirmDelete("plan", plan.id)}
+                            data-testid={`button-delete-plan-${plan.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -458,23 +500,35 @@ export default function AdminDashboard() {
       {/* Dialogs */}
       <AddCategoryDialog
         open={showAddCategory}
-        onOpenChange={setShowAddCategory}
+        onOpenChange={(open) => {
+          if (!open) setEditingCategory(null);
+          setShowAddCategory(open);
+        }}
         onSuccess={loadData}
+        editingCategory={editingCategory}
       />
 
       <AddSubcategoryDialog
         open={showAddSubcategory}
-        onOpenChange={setShowAddSubcategory}
+        onOpenChange={(open) => {
+          if (!open) setEditingSubcategory(null);
+          setShowAddSubcategory(open);
+        }}
         categories={categories}
         onSuccess={loadData}
+        editingSubcategory={editingSubcategory}
       />
 
       <AddPlanDialog
         open={showAddPlan}
-        onOpenChange={setShowAddPlan}
+        onOpenChange={(open) => {
+          if (!open) setEditingPlan(null);
+          setShowAddPlan(open);
+        }}
         categories={categories}
         subcategories={subcategories}
         onSuccess={loadData}
+        editingPlan={editingPlan}
       />
 
       <AdminUserDialog

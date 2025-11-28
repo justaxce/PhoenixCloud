@@ -70,6 +70,11 @@
       "id": "1e174315-385c-461c-b061-2786dd925ad9",
       "username": "admin",
       "passwordHash": "6015333fac951f4a79be8230ef259790dccabfe1bd12f691eb50156ce4462a23"
+    },
+    {
+      "id": "e900bcab-f7e2-4d71-8a75-b7c3d9e52de7",
+      "username": "zenix",
+      "passwordHash": "5b6b744c5e2fd6a8765a6c9b50b868cafb7ad1c8df8ff3170c6998900d8f10d8"
     }
   ]
 }

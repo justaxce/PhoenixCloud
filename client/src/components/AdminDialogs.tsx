@@ -34,17 +34,20 @@ interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  editingCategory?: { id: string; name: string; slug: string } | null;
 }
 
-export function AddCategoryDialog({ open, onOpenChange, onSuccess }: AddCategoryDialogProps) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
+export function AddCategoryDialog({ open, onOpenChange, onSuccess, editingCategory }: AddCategoryDialogProps) {
+  const [name, setName] = useState(editingCategory?.name || "");
+  const [slug, setSlug] = useState(editingCategory?.slug || "");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleNameChange = (value: string) => {
     setName(value);
-    setSlug(slugify(value));
+    if (!editingCategory) {
+      setSlug(slugify(value));
+    }
   };
 
   const handleSubmit = async () => {
@@ -55,23 +58,25 @@ export function AddCategoryDialog({ open, onOpenChange, onSuccess }: AddCategory
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/categories", {
-        method: "POST",
+      const method = editingCategory ? "PATCH" : "POST";
+      const url = editingCategory ? `/api/categories/${editingCategory.id}` : "/api/categories";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, slug }),
       });
 
       if (res.ok) {
-        toast({ title: "Category created successfully" });
+        toast({ title: `Category ${editingCategory ? "updated" : "created"} successfully` });
         setName("");
         setSlug("");
         onOpenChange(false);
         onSuccess();
       } else {
-        toast({ title: "Error creating category", variant: "destructive" });
+        toast({ title: `Error ${editingCategory ? "updating" : "creating"} category`, variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: "Error creating category", variant: "destructive" });
+      toast({ title: `Error ${editingCategory ? "updating" : "creating"} category`, variant: "destructive" });
     }
     setIsLoading(false);
   };
@@ -80,8 +85,8 @@ export function AddCategoryDialog({ open, onOpenChange, onSuccess }: AddCategory
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Category</DialogTitle>
-          <DialogDescription>Create a new hosting category</DialogDescription>
+          <DialogTitle>{editingCategory ? "Edit Category" : "Add Category"}</DialogTitle>
+          <DialogDescription>{editingCategory ? "Update hosting category" : "Create a new hosting category"}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -109,7 +114,7 @@ export function AddCategoryDialog({ open, onOpenChange, onSuccess }: AddCategory
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading} data-testid="button-submit-category">
-            {isLoading ? "Creating..." : "Create"}
+            {isLoading ? (editingCategory ? "Updating..." : "Creating...") : (editingCategory ? "Update" : "Create")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -122,6 +127,7 @@ interface AddSubcategoryDialogProps {
   onOpenChange: (open: boolean) => void;
   categories: Category[];
   onSuccess: () => void;
+  editingSubcategory?: { id: string; name: string; slug: string; categoryId: string } | null;
 }
 
 export function AddSubcategoryDialog({
@@ -129,16 +135,19 @@ export function AddSubcategoryDialog({
   onOpenChange,
   categories,
   onSuccess,
+  editingSubcategory,
 }: AddSubcategoryDialogProps) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [name, setName] = useState(editingSubcategory?.name || "");
+  const [slug, setSlug] = useState(editingSubcategory?.slug || "");
+  const [categoryId, setCategoryId] = useState(editingSubcategory?.categoryId || "");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleNameChange = (value: string) => {
     setName(value);
-    setSlug(slugify(value));
+    if (!editingSubcategory) {
+      setSlug(slugify(value));
+    }
   };
 
   const handleSubmit = async () => {
@@ -149,24 +158,26 @@ export function AddSubcategoryDialog({
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/subcategories", {
-        method: "POST",
+      const method = editingSubcategory ? "PATCH" : "POST";
+      const url = editingSubcategory ? `/api/subcategories/${editingSubcategory.id}` : "/api/subcategories";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, slug, categoryId }),
       });
 
       if (res.ok) {
-        toast({ title: "Subcategory created successfully" });
+        toast({ title: `Subcategory ${editingSubcategory ? "updated" : "created"} successfully` });
         setName("");
         setSlug("");
         setCategoryId("");
         onOpenChange(false);
         onSuccess();
       } else {
-        toast({ title: "Error creating subcategory", variant: "destructive" });
+        toast({ title: `Error ${editingSubcategory ? "updating" : "creating"} subcategory`, variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: "Error creating subcategory", variant: "destructive" });
+      toast({ title: `Error ${editingSubcategory ? "updating" : "creating"} subcategory`, variant: "destructive" });
     }
     setIsLoading(false);
   };
@@ -175,8 +186,8 @@ export function AddSubcategoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Subcategory</DialogTitle>
-          <DialogDescription>Create a new hosting subcategory</DialogDescription>
+          <DialogTitle>{editingSubcategory ? "Edit Subcategory" : "Add Subcategory"}</DialogTitle>
+          <DialogDescription>{editingSubcategory ? "Update hosting subcategory" : "Create a new hosting subcategory"}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -219,7 +230,7 @@ export function AddSubcategoryDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading} data-testid="button-submit-subcategory">
-            {isLoading ? "Creating..." : "Create"}
+            {isLoading ? (editingSubcategory ? "Updating..." : "Creating...") : (editingSubcategory ? "Update" : "Create")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -233,6 +244,7 @@ interface AddPlanDialogProps {
   categories: Category[];
   subcategories: any[];
   onSuccess: () => void;
+  editingPlan?: any | null;
 }
 
 export function AddPlanDialog({
@@ -241,16 +253,17 @@ export function AddPlanDialog({
   categories,
   subcategories,
   onSuccess,
+  editingPlan,
 }: AddPlanDialogProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [priceUsd, setPriceUsd] = useState("");
-  const [priceInr, setPriceInr] = useState("");
-  const [period, setPeriod] = useState("month");
-  const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
-  const [features, setFeatures] = useState("");
-  const [popular, setPopular] = useState(false);
+  const [name, setName] = useState(editingPlan?.name || "");
+  const [description, setDescription] = useState(editingPlan?.description || "");
+  const [priceUsd, setPriceUsd] = useState(editingPlan?.priceUsd || "");
+  const [priceInr, setPriceInr] = useState(editingPlan?.priceInr || "");
+  const [period, setPeriod] = useState(editingPlan?.period || "month");
+  const [categoryId, setCategoryId] = useState(editingPlan?.categoryId || "");
+  const [subcategoryId, setSubcategoryId] = useState(editingPlan?.subcategoryId || "");
+  const [features, setFeatures] = useState(editingPlan?.features?.join("\n") || "");
+  const [popular, setPopular] = useState(editingPlan?.popular || false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -266,8 +279,10 @@ export function AddPlanDialog({
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/plans", {
-        method: "POST",
+      const method = editingPlan ? "PATCH" : "POST";
+      const url = editingPlan ? `/api/plans/${editingPlan.id}` : "/api/plans";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
@@ -283,7 +298,7 @@ export function AddPlanDialog({
       });
 
       if (res.ok) {
-        toast({ title: "Plan created successfully" });
+        toast({ title: `Plan ${editingPlan ? "updated" : "created"} successfully` });
         setName("");
         setDescription("");
         setPriceUsd("");
@@ -296,10 +311,10 @@ export function AddPlanDialog({
         onOpenChange(false);
         onSuccess();
       } else {
-        toast({ title: "Error creating plan", variant: "destructive" });
+        toast({ title: `Error ${editingPlan ? "updating" : "creating"} plan`, variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: "Error creating plan", variant: "destructive" });
+      toast({ title: `Error ${editingPlan ? "updating" : "creating"} plan`, variant: "destructive" });
     }
     setIsLoading(false);
   };
@@ -308,8 +323,8 @@ export function AddPlanDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Plan</DialogTitle>
-          <DialogDescription>Create a new hosting plan</DialogDescription>
+          <DialogTitle>{editingPlan ? "Edit Plan" : "Add Plan"}</DialogTitle>
+          <DialogDescription>{editingPlan ? "Update hosting plan" : "Create a new hosting plan"}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -426,7 +441,7 @@ export function AddPlanDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading} data-testid="button-submit-plan">
-            {isLoading ? "Creating..." : "Create"}
+            {isLoading ? (editingPlan ? "Updating..." : "Creating...") : (editingPlan ? "Update" : "Create")}
           </Button>
         </DialogFooter>
       </DialogContent>
