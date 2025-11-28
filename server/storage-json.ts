@@ -3,7 +3,7 @@ import { randomUUID, scryptSync, timingSafeEqual } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 
-const DATA_FILE = path.join(process.cwd(), "data.json");
+const DATA_FILE = path.join(import.meta.dirname, "..", "data.json");
 
 interface StorageData {
   categories: Category[];
