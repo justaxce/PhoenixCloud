@@ -42,8 +42,8 @@ export function Header({ categories = [] }: HeaderProps) {
     { href: "/", label: "Home" },
     { href: "/plans", label: "Plans" },
     { href: "/support", label: "Support" },
-    { href: "/terms", label: "Terms" },
-    { href: "/privacy", label: "Policy" },
+    { href: "/terms", label: "Terms of service" },
+    { href: "/privacy", label: "Privacy policy" },
   ];
 
   const isActive = (path: string) => location === path;
