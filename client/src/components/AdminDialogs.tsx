@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,10 +38,20 @@ interface AddCategoryDialogProps {
 }
 
 export function AddCategoryDialog({ open, onOpenChange, onSuccess, editingCategory }: AddCategoryDialogProps) {
-  const [name, setName] = useState(editingCategory?.name || "");
-  const [slug, setSlug] = useState(editingCategory?.slug || "");
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (editingCategory) {
+      setName(editingCategory.name);
+      setSlug(editingCategory.slug);
+    } else {
+      setName("");
+      setSlug("");
+    }
+  }, [editingCategory]);
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -137,11 +147,23 @@ export function AddSubcategoryDialog({
   onSuccess,
   editingSubcategory,
 }: AddSubcategoryDialogProps) {
-  const [name, setName] = useState(editingSubcategory?.name || "");
-  const [slug, setSlug] = useState(editingSubcategory?.slug || "");
-  const [categoryId, setCategoryId] = useState(editingSubcategory?.categoryId || "");
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (editingSubcategory) {
+      setName(editingSubcategory.name);
+      setSlug(editingSubcategory.slug);
+      setCategoryId(editingSubcategory.categoryId);
+    } else {
+      setName("");
+      setSlug("");
+      setCategoryId("");
+    }
+  }, [editingSubcategory]);
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -255,17 +277,41 @@ export function AddPlanDialog({
   onSuccess,
   editingPlan,
 }: AddPlanDialogProps) {
-  const [name, setName] = useState(editingPlan?.name || "");
-  const [description, setDescription] = useState(editingPlan?.description || "");
-  const [priceUsd, setPriceUsd] = useState(editingPlan?.priceUsd || "");
-  const [priceInr, setPriceInr] = useState(editingPlan?.priceInr || "");
-  const [period, setPeriod] = useState(editingPlan?.period || "month");
-  const [categoryId, setCategoryId] = useState(editingPlan?.categoryId || "");
-  const [subcategoryId, setSubcategoryId] = useState(editingPlan?.subcategoryId || "");
-  const [features, setFeatures] = useState(editingPlan?.features?.join("\n") || "");
-  const [popular, setPopular] = useState(editingPlan?.popular || false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [priceUsd, setPriceUsd] = useState("");
+  const [priceInr, setPriceInr] = useState("");
+  const [period, setPeriod] = useState("month");
+  const [categoryId, setCategoryId] = useState("");
+  const [subcategoryId, setSubcategoryId] = useState("");
+  const [features, setFeatures] = useState("");
+  const [popular, setPopular] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (editingPlan) {
+      setName(editingPlan.name);
+      setDescription(editingPlan.description);
+      setPriceUsd(editingPlan.priceUsd);
+      setPriceInr(editingPlan.priceInr);
+      setPeriod(editingPlan.period);
+      setCategoryId(editingPlan.categoryId);
+      setSubcategoryId(editingPlan.subcategoryId);
+      setFeatures(editingPlan.features?.join("\n") || "");
+      setPopular(editingPlan.popular);
+    } else {
+      setName("");
+      setDescription("");
+      setPriceUsd("");
+      setPriceInr("");
+      setPeriod("month");
+      setCategoryId("");
+      setSubcategoryId("");
+      setFeatures("");
+      setPopular(false);
+    }
+  }, [editingPlan]);
 
   const filteredSubcategories = categoryId
     ? subcategories.filter((s) => s.categoryId === categoryId)

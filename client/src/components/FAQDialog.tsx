@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,10 +20,20 @@ interface FAQDialogProps {
 }
 
 export function FAQDialog({ open, onOpenChange, onSuccess, editingFAQ }: FAQDialogProps) {
-  const [question, setQuestion] = useState(editingFAQ?.question || "");
-  const [answer, setAnswer] = useState(editingFAQ?.answer || "");
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (editingFAQ) {
+      setQuestion(editingFAQ.question);
+      setAnswer(editingFAQ.answer);
+    } else {
+      setQuestion("");
+      setAnswer("");
+    }
+  }, [editingFAQ]);
 
   const handleSubmit = async () => {
     if (!question || !answer) {
