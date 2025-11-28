@@ -76,9 +76,9 @@ export function Hero({ settings }: HeroProps) {
         <img
           src={backgroundImage}
           alt="Hero background"
-          className="absolute inset-0 w-full h-full object-cover opacity-100"
+          className="absolute inset-0 w-full h-full object-cover"
           style={{
-            backgroundAttachment: 'fixed',
+            zIndex: 0,
           }}
           onLoad={() => setImageLoaded(true)}
           onError={() => setImageFailed(true)}
@@ -86,31 +86,34 @@ export function Hero({ settings }: HeroProps) {
       )}
       
       {/* Fallback gradient if no image or image fails to load */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: isDark ? defaultGradients.dark : defaultGradients.light,
-          zIndex: shouldShowImage ? 0 : 1,
-        }}
-      />
+      {!shouldShowImage && (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: isDark ? defaultGradients.dark : defaultGradients.light,
+            zIndex: 0,
+          }}
+        />
+      )}
       
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" style={{ zIndex: 1 }} />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" style={{ zIndex: 2 }} />
       
       {floatingIcons.map(({ Icon, className, delay, size }, index) => (
         <div
           key={index}
-          className={`absolute ${className} opacity-20 dark:opacity-30 pointer-events-none z-0`}
+          className={`absolute ${className} opacity-20 dark:opacity-30 pointer-events-none`}
           style={{
             animation: `float 6s ease-in-out infinite`,
             animationDelay: delay,
+            zIndex: 3,
           }}
         >
           <Icon className={`${size} text-primary`} />
         </div>
       ))}
       
-      <div className="container relative mx-auto px-4 py-24 md:py-32 lg:py-40">
+      <div className="container relative mx-auto px-4 py-24 md:py-32 lg:py-40" style={{ zIndex: 4 }}>
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm">
             <span className="flex h-2 w-2 rounded-full bg-green-500" />
