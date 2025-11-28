@@ -18,10 +18,10 @@ export interface Plan {
 
 interface PlanCardProps {
   plan: Plan;
-  discordLink?: string;
+  redirectLink?: string;
 }
 
-export function PlanCard({ plan, discordLink = "#" }: PlanCardProps) {
+export function PlanCard({ plan, redirectLink = "#" }: PlanCardProps) {
   const { currency } = useCurrency();
   
   const getPrice = () => {
@@ -35,8 +35,8 @@ export function PlanCard({ plan, discordLink = "#" }: PlanCardProps) {
   };
 
   const handleOrderNow = () => {
-    if (discordLink && discordLink !== "#") {
-      window.open(discordLink, "_blank");
+    if (redirectLink && redirectLink !== "#") {
+      window.open(redirectLink, "_blank");
     } else {
       console.log("Order clicked for plan:", plan.name);
     }

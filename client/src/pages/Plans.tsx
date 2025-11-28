@@ -166,7 +166,7 @@ export default function Plans({
             {filteredPlans.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredPlans.map((plan) => (
-                  <PlanCard key={plan.id} plan={plan} discordLink={discordLink} />
+                  <PlanCard key={plan.id} plan={plan} redirectLink={redirectLink} />
                 ))}
               </div>
             ) : (
