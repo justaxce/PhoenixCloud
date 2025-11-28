@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PlanCard, type Plan } from "@/components/PlanCard";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,58 +107,60 @@ export default function Plans({
           </div>
         </section>
 
-        <section className="py-8 border-b">
+        <section className="py-8">
           <div className="container mx-auto px-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {getBreadcrumb().map((part, index) => (
-                  <span key={index} className="flex items-center gap-2">
-                    {index > 0 && <span>/</span>}
-                    <span className={index === getBreadcrumb().length - 1 ? "text-foreground font-medium" : ""}>
-                      {part}
+            <Card className="p-6 bg-card text-card-foreground shadow-lg">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {getBreadcrumb().map((part, index) => (
+                    <span key={index} className="flex items-center gap-2">
+                      {index > 0 && <span>/</span>}
+                      <span className={index === getBreadcrumb().length - 1 ? "text-foreground font-medium" : ""}>
+                        {part}
+                      </span>
                     </span>
-                  </span>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" data-testid="button-filter-category">
-                    <Filter className="mr-2 h-4 w-4" />
-                    {activeCategory ? activeCategory.name : "All Categories"}
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <Link href="/plans">
-                    <DropdownMenuItem data-testid="filter-all">
-                      All Categories
-                    </DropdownMenuItem>
-                  </Link>
-                  {categories.map((category) => (
-                    <DropdownMenuSub key={category.id}>
-                      <DropdownMenuSubTrigger data-testid={`filter-cat-${category.slug}`}>
-                        {category.name}
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="w-48">
-                        <Link href={`/plans/${category.slug}`}>
-                          <DropdownMenuItem data-testid={`filter-cat-all-${category.slug}`}>
-                            All {category.name}
-                          </DropdownMenuItem>
-                        </Link>
-                        {category.subcategories.map((sub) => (
-                          <Link key={sub.id} href={`/plans/${category.slug}/${sub.slug}`}>
-                            <DropdownMenuItem data-testid={`filter-sub-${sub.slug}`}>
-                              {sub.name}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" data-testid="button-filter-category">
+                      <Filter className="mr-2 h-4 w-4" />
+                      {activeCategory ? activeCategory.name : "All Categories"}
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <Link href="/plans">
+                      <DropdownMenuItem data-testid="filter-all">
+                        All Categories
+                      </DropdownMenuItem>
+                    </Link>
+                    {categories.map((category) => (
+                      <DropdownMenuSub key={category.id}>
+                        <DropdownMenuSubTrigger data-testid={`filter-cat-${category.slug}`}>
+                          {category.name}
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="w-48">
+                          <Link href={`/plans/${category.slug}`}>
+                            <DropdownMenuItem data-testid={`filter-cat-all-${category.slug}`}>
+                              All {category.name}
                             </DropdownMenuItem>
                           </Link>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                          {category.subcategories.map((sub) => (
+                            <Link key={sub.id} href={`/plans/${category.slug}/${sub.slug}`}>
+                              <DropdownMenuItem data-testid={`filter-sub-${sub.slug}`}>
+                                {sub.name}
+                              </DropdownMenuItem>
+                            </Link>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </Card>
           </div>
         </section>
 
