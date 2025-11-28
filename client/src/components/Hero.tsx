@@ -29,9 +29,24 @@ export function Hero({ settings }: HeroProps) {
   const stat2Label = settings?.stat2Label || "Global Locations";
   const stat3Value = settings?.stat3Value || "24/7";
   const stat3Label = settings?.stat3Label || "Expert Support";
+  
+  // Get background image for current theme
+  const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  const backgroundImage = isDark ? settings?.backgroundImageDark : settings?.backgroundImageLight;
 
   return (
     <section className="relative overflow-hidden">
+      {backgroundImage && (
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url('${backgroundImage}')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
+          }}
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
       

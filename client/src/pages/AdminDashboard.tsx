@@ -73,6 +73,8 @@ export default function AdminDashboard() {
   const [feature6Description, setFeature6Description] = useState("");
   const [ctaTitle, setCtaTitle] = useState("");
   const [ctaDescription, setCtaDescription] = useState("");
+  const [backgroundImageLight, setBackgroundImageLight] = useState("");
+  const [backgroundImageDark, setBackgroundImageDark] = useState("");
 
   // Dialog states
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -157,6 +159,8 @@ export default function AdminDashboard() {
         setFeature6Description(s.feature6Description || "");
         setCtaTitle(s.ctaTitle || "Ready to Rise Above?");
         setCtaDescription(s.ctaDescription || "");
+        setBackgroundImageLight(s.backgroundImageLight || "");
+        setBackgroundImageDark(s.backgroundImageDark || "");
       }
 
       // Load admin users
@@ -208,7 +212,9 @@ export default function AdminDashboard() {
           feature6Title,
           feature6Description,
           ctaTitle,
-          ctaDescription
+          ctaDescription,
+          backgroundImageLight,
+          backgroundImageDark
         }),
       });
       if (res.ok) {
@@ -600,6 +606,35 @@ export default function AdminDashboard() {
                     onChange={(e) => setCtaDescription(e.target.value)}
                     data-testid="input-cta-description"
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Background Images</CardTitle>
+                <CardDescription>Edit background images for light and dark themes</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Light Theme Background Image</label>
+                  <Input
+                    placeholder="https://i.pinimg.com/1200x/7f/b2/61/7fb2612d4b9630d91a70416fd7b8379c.jpg"
+                    value={backgroundImageLight}
+                    onChange={(e) => setBackgroundImageLight(e.target.value)}
+                    data-testid="input-bg-light"
+                  />
+                  <p className="text-xs text-muted-foreground">Supports direct links and Discord media links</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Dark Theme Background Image</label>
+                  <Input
+                    placeholder="https://media.discordapp.net/attachments/..."
+                    value={backgroundImageDark}
+                    onChange={(e) => setBackgroundImageDark(e.target.value)}
+                    data-testid="input-bg-dark"
+                  />
+                  <p className="text-xs text-muted-foreground">Supports direct links and Discord media links</p>
                 </div>
               </CardContent>
             </Card>

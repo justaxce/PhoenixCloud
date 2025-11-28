@@ -65,6 +65,8 @@ export interface Settings {
   feature6Description?: string;
   ctaTitle?: string;
   ctaDescription?: string;
+  backgroundImageLight?: string;
+  backgroundImageDark?: string;
 }
 
 export interface AdminUser {

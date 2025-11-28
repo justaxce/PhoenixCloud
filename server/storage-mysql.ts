@@ -150,7 +150,9 @@ export class MySQLStorage implements IStorage {
           feature6Title VARCHAR(255) DEFAULT '99.9% Uptime',
           feature6Description TEXT,
           ctaTitle VARCHAR(255) DEFAULT 'Ready to Rise Above?',
-          ctaDescription TEXT
+          ctaDescription TEXT,
+          backgroundImageLight TEXT,
+          backgroundImageDark TEXT
         )
       `);
 
@@ -179,7 +181,9 @@ export class MySQLStorage implements IStorage {
         "feature6Title VARCHAR(255) DEFAULT '99.9% Uptime'",
         "feature6Description TEXT",
         "ctaTitle VARCHAR(255) DEFAULT 'Ready to Rise Above?'",
-        "ctaDescription TEXT"
+        "ctaDescription TEXT",
+        "backgroundImageLight TEXT",
+        "backgroundImageDark TEXT"
       ];
 
       for (const col of columnsToAdd) {
@@ -437,6 +441,8 @@ export class MySQLStorage implements IStorage {
       feature6Description: row.feature6Description || "Industry-leading SLA with guaranteed uptime for your peace of mind.",
       ctaTitle: row.ctaTitle || "Ready to Rise Above?",
       ctaDescription: row.ctaDescription || "Join thousands of satisfied customers who trust Phoenix Cloud for their hosting needs. Get started in minutes.",
+      backgroundImageLight: row.backgroundImageLight || "",
+      backgroundImageDark: row.backgroundImageDark || "",
     };
   }
 
@@ -454,7 +460,8 @@ export class MySQLStorage implements IStorage {
        feature4Title = ?, feature4Description = ?,
        feature5Title = ?, feature5Description = ?,
        feature6Title = ?, feature6Description = ?,
-       ctaTitle = ?, ctaDescription = ?
+       ctaTitle = ?, ctaDescription = ?,
+       backgroundImageLight = ?, backgroundImageDark = ?
        WHERE id = 1`,
       [
         settings.currency, settings.supportLink, settings.redirectLink,
@@ -484,7 +491,9 @@ export class MySQLStorage implements IStorage {
         settings.feature6Title || "99.9% Uptime",
         settings.feature6Description || "",
         settings.ctaTitle || "Ready to Rise Above?",
-        settings.ctaDescription || ""
+        settings.ctaDescription || "",
+        settings.backgroundImageLight || "",
+        settings.backgroundImageDark || ""
       ]
     );
     return settings;
