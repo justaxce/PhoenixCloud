@@ -15,7 +15,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Settings, Flame, LogOut, Plus, Trash2, Edit2, Users } from "lucide-react";
+import { Settings, LogOut, Plus, Trash2, Edit2, Users } from "lucide-react";
 import type { Category, Subcategory, Plan, Settings as SettingsType } from "@shared/schema";
 import {
   AddCategoryDialog,
@@ -25,6 +25,7 @@ import {
 import { AdminUserDialog } from "@/components/AdminUserDialog";
 import { FAQDialog } from "@/components/FAQDialog";
 import type { FAQ } from "@shared/schema";
+import phoenixLogo from "@assets/phoenix-logo.png";
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -166,9 +167,7 @@ export default function AdminDashboard() {
       <header className="border-b sticky top-0 z-40 bg-background/95 backdrop-blur">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary">
-              <Flame className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img src={phoenixLogo} alt="Phoenix Cloud" className="h-9 w-9 object-contain" />
             <span className="text-xl font-bold">Phoenix Admin</span>
           </div>
           <div className="flex items-center gap-4">

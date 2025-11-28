@@ -247,7 +247,16 @@ export class JsonStorage implements IStorage {
 
   // Settings
   async getSettings(): Promise<Settings> {
-    return this.data.settings;
+    // Ensure all fields have defaults
+    return {
+      currency: this.data.settings.currency || "usd",
+      supportLink: this.data.settings.supportLink || "",
+      redirectLink: this.data.settings.redirectLink || "",
+      instagramLink: this.data.settings.instagramLink || "",
+      youtubeLink: this.data.settings.youtubeLink || "",
+      email: this.data.settings.email || "",
+      documentationLink: this.data.settings.documentationLink || "",
+    };
   }
 
   async updateSettings(settings: Settings): Promise<Settings> {
