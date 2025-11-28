@@ -45,8 +45,14 @@ const pool = mysql.createPool({
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  connectionLimit: 5,
+  queueLimit: 10,
+  enableKeepAlive: true,
+  keepAliveInitialDelayMs: 0,
+});
+
+pool.on("error", (err: any) => {
+  console.error("Pool error:", err);
 });
 
 export class MySQLStorage implements IStorage {
@@ -220,28 +226,37 @@ export class MySQLStorage implements IStorage {
     }
   }
 
+  private async query(sql: string, values?: any[]): Promise<[any[], any]> {
+    const conn = await pool.getConnection();
+    try {
+      return await conn.query(sql, values);
+    } finally {
+      conn.release();
+    }
+  }
+
   async getCategories(): Promise<Category[]> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM categories");
+    const [rows] = await this.query("SELECT * FROM categories");
     return rows as Category[];
   }
 
   async getCategory(id: string): Promise<Category | undefined> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM categories WHERE id = ?", [id]);
+    const [rows] = await this.query("SELECT * FROM categories WHERE id = ?", [id]);
     return (rows as Category[])[0];
   }
 
   async createCategory(name: string, slug: string): Promise<Category> {
     await this.initializeDatabase();
     const id = randomUUID();
-    await pool.query("INSERT INTO categories (id, name, slug) VALUES (?, ?, ?)", [id, name, slug]);
+    await this.query("INSERT INTO categories (id, name, slug) VALUES (?, ?, ?)", [id, name, slug]);
     return { id, name, slug };
   }
 
   async updateCategory(id: string, name: string, slug: string): Promise<Category | undefined> {
     await this.initializeDatabase();
-    const [result] = await pool.query(
+    const [result] = await this.query(
       "UPDATE categories SET name = ?, slug = ? WHERE id = ?",
       [name, slug, id]
     );
@@ -251,26 +266,26 @@ export class MySQLStorage implements IStorage {
 
   async deleteCategory(id: string): Promise<boolean> {
     await this.initializeDatabase();
-    const [result] = await pool.query("DELETE FROM categories WHERE id = ?", [id]);
+    const [result] = await this.query("DELETE FROM categories WHERE id = ?", [id]);
     return (result as any).affectedRows > 0;
   }
 
   async getSubcategories(): Promise<Subcategory[]> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM subcategories");
+    const [rows] = await this.query("SELECT * FROM subcategories");
     return rows as Subcategory[];
   }
 
   async getSubcategoriesByCategory(categoryId: string): Promise<Subcategory[]> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM subcategories WHERE categoryId = ?", [categoryId]);
+    const [rows] = await this.query("SELECT * FROM subcategories WHERE categoryId = ?", [categoryId]);
     return rows as Subcategory[];
   }
 
   async createSubcategory(name: string, slug: string, categoryId: string): Promise<Subcategory> {
     await this.initializeDatabase();
     const id = randomUUID();
-    await pool.query(
+    await this.query(
       "INSERT INTO subcategories (id, name, slug, categoryId) VALUES (?, ?, ?, ?)",
       [id, name, slug, categoryId]
     );
@@ -279,22 +294,22 @@ export class MySQLStorage implements IStorage {
 
   async updateSubcategory(id: string, name: string, slug: string): Promise<Subcategory | undefined> {
     await this.initializeDatabase();
-    const [existing] = await pool.query("SELECT categoryId FROM subcategories WHERE id = ?", [id]);
+    const [existing] = await this.query("SELECT categoryId FROM subcategories WHERE id = ?", [id]);
     if ((existing as any[]).length === 0) return undefined;
     const categoryId = (existing as any[])[0].categoryId;
-    await pool.query("UPDATE subcategories SET name = ?, slug = ? WHERE id = ?", [name, slug, id]);
+    await this.query("UPDATE subcategories SET name = ?, slug = ? WHERE id = ?", [name, slug, id]);
     return { id, name, slug, categoryId };
   }
 
   async deleteSubcategory(id: string): Promise<boolean> {
     await this.initializeDatabase();
-    const [result] = await pool.query("DELETE FROM subcategories WHERE id = ?", [id]);
+    const [result] = await this.query("DELETE FROM subcategories WHERE id = ?", [id]);
     return (result as any).affectedRows > 0;
   }
 
   async getPlans(): Promise<Plan[]> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM plans");
+    const [rows] = await this.query("SELECT * FROM plans");
     return (rows as any[]).map((row) => ({
       ...row,
       features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
@@ -304,7 +319,7 @@ export class MySQLStorage implements IStorage {
 
   async getPlansBySubcategory(subcategoryId: string): Promise<Plan[]> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM plans WHERE subcategoryId = ?", [subcategoryId]);
+    const [rows] = await this.query("SELECT * FROM plans WHERE subcategoryId = ?", [subcategoryId]);
     return (rows as any[]).map((row) => ({
       ...row,
       features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
@@ -315,7 +330,7 @@ export class MySQLStorage implements IStorage {
   async createPlan(plan: Omit<Plan, "id">): Promise<Plan> {
     await this.initializeDatabase();
     const id = randomUUID();
-    await pool.query(
+    await this.query(
       `INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, plan.name, plan.description, plan.priceUsd, plan.priceInr, plan.period, 
@@ -326,7 +341,7 @@ export class MySQLStorage implements IStorage {
 
   async updatePlan(id: string, updates: Partial<Plan>): Promise<Plan | undefined> {
     await this.initializeDatabase();
-    const [existing] = await pool.query("SELECT * FROM plans WHERE id = ?", [id]);
+    const [existing] = await this.query("SELECT * FROM plans WHERE id = ?", [id]);
     if ((existing as any[]).length === 0) return undefined;
     
     const current = (existing as any[])[0];
@@ -336,7 +351,7 @@ export class MySQLStorage implements IStorage {
       features: updates.features ? JSON.stringify(updates.features) : current.features,
     };
     
-    await pool.query(
+    await this.query(
       `UPDATE plans SET name = ?, description = ?, priceUsd = ?, priceInr = ?, period = ?, 
        features = ?, popular = ?, categoryId = ?, subcategoryId = ? WHERE id = ?`,
       [updated.name, updated.description, updated.priceUsd, updated.priceInr, updated.period,
@@ -352,26 +367,26 @@ export class MySQLStorage implements IStorage {
 
   async deletePlan(id: string): Promise<boolean> {
     await this.initializeDatabase();
-    const [result] = await pool.query("DELETE FROM plans WHERE id = ?", [id]);
+    const [result] = await this.query("DELETE FROM plans WHERE id = ?", [id]);
     return (result as any).affectedRows > 0;
   }
 
   async getFAQs(): Promise<FAQ[]> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM faqs");
+    const [rows] = await this.query("SELECT * FROM faqs");
     return rows as FAQ[];
   }
 
   async createFAQ(question: string, answer: string): Promise<FAQ> {
     await this.initializeDatabase();
     const id = randomUUID();
-    await pool.query("INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)", [id, question, answer]);
+    await this.query("INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)", [id, question, answer]);
     return { id, question, answer };
   }
 
   async updateFAQ(id: string, question: string, answer: string): Promise<FAQ | undefined> {
     await this.initializeDatabase();
-    const [result] = await pool.query(
+    const [result] = await this.query(
       "UPDATE faqs SET question = ?, answer = ? WHERE id = ?",
       [question, answer, id]
     );
@@ -381,13 +396,13 @@ export class MySQLStorage implements IStorage {
 
   async deleteFAQ(id: string): Promise<boolean> {
     await this.initializeDatabase();
-    const [result] = await pool.query("DELETE FROM faqs WHERE id = ?", [id]);
+    const [result] = await this.query("DELETE FROM faqs WHERE id = ?", [id]);
     return (result as any).affectedRows > 0;
   }
 
   async getSettings(): Promise<Settings> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT * FROM settings WHERE id = 1");
+    const [rows] = await this.query("SELECT * FROM settings WHERE id = 1");
     const row = (rows as any[])[0] || {};
     return {
       currency: row.currency || "usd",
@@ -427,7 +442,7 @@ export class MySQLStorage implements IStorage {
 
   async updateSettings(settings: Settings): Promise<Settings> {
     await this.initializeDatabase();
-    await pool.query(
+    await this.query(
       `UPDATE settings SET currency = ?, supportLink = ?, redirectLink = ?, 
        instagramLink = ?, youtubeLink = ?, email = ?, documentationLink = ?,
        heroTitleLine1 = ?, heroTitleLine2 = ?, heroDescription = ?,
@@ -477,14 +492,14 @@ export class MySQLStorage implements IStorage {
 
   async getAdminUsers(): Promise<any[]> {
     await this.initializeDatabase();
-    const [rows] = await pool.query("SELECT id, username FROM admin_users");
+    const [rows] = await this.query("SELECT id, username FROM admin_users");
     return rows as any[];
   }
 
   async createAdminUser(username: string, passwordHash: string): Promise<any> {
     await this.initializeDatabase();
     const id = randomUUID();
-    await pool.query(
+    await this.query(
       "INSERT INTO admin_users (id, username, passwordHash) VALUES (?, ?, ?)",
       [id, username, passwordHash]
     );
@@ -493,24 +508,24 @@ export class MySQLStorage implements IStorage {
 
   async updateAdminUser(id: string, passwordHash: string): Promise<any | undefined> {
     await this.initializeDatabase();
-    const [result] = await pool.query(
+    const [result] = await this.query(
       "UPDATE admin_users SET passwordHash = ? WHERE id = ?",
       [passwordHash, id]
     );
     if ((result as any).affectedRows === 0) return undefined;
-    const [rows] = await pool.query("SELECT id, username FROM admin_users WHERE id = ?", [id]);
+    const [rows] = await this.query("SELECT id, username FROM admin_users WHERE id = ?", [id]);
     return (rows as any[])[0];
   }
 
   async deleteAdminUser(id: string): Promise<boolean> {
     await this.initializeDatabase();
-    const [result] = await pool.query("DELETE FROM admin_users WHERE id = ?", [id]);
+    const [result] = await this.query("DELETE FROM admin_users WHERE id = ?", [id]);
     return (result as any).affectedRows > 0;
   }
 
   async verifyAdminUser(username: string, password: string): Promise<boolean> {
     await this.initializeDatabase();
-    const [rows] = await pool.query(
+    const [rows] = await this.query(
       "SELECT passwordHash FROM admin_users WHERE username = ?",
       [username]
     );
