@@ -172,17 +172,17 @@ export class PostgresStorage implements IStorage {
         `;
       }
 
-      // Initialize default admin user - always ensure it exists with password
-      const adminId = randomUUID();
-      const passwordHash = this.hashPassword("admin123");
-      
-      // Delete any existing admin user and recreate with fresh password
-      await sql`DELETE FROM admin_users`;
-      await sql`
-        INSERT INTO admin_users (id, username, passwordHash)
-        VALUES (${adminId}, 'admin', ${passwordHash})
-      `;
-      console.log("✅ Created default admin user: admin / admin123");
+      // Initialize default admin user - check if exists first to avoid race condition
+      const existingAdmin = await sql`SELECT id FROM admin_users WHERE username = 'admin'`;
+      if (existingAdmin.length === 0) {
+        const adminId = randomUUID();
+        const passwordHash = this.hashPassword("admin123");
+        await sql`
+          INSERT INTO admin_users (id, username, passwordhash)
+          VALUES (${adminId}, 'admin', ${passwordHash})
+        `;
+        console.log("✅ Created default admin user: admin / admin123");
+      }
 
       console.log("✅ PostgreSQL database initialized successfully!");
       this.initialized = true;
@@ -453,7 +453,8 @@ export class PostgresStorage implements IStorage {
       await this.initializeDatabase();
       console.log(`[AUTH] Looking up user: ${username}`);
       
-      const result = await sql`SELECT passwordHash FROM admin_users WHERE username = ${username}`;
+      // PostgreSQL returns lowercase column names
+      const result = await sql`SELECT passwordhash FROM admin_users WHERE username = ${username}`;
       console.log(`[AUTH] Query returned ${result.length} results`);
       
       if (result.length === 0) {
@@ -461,12 +462,13 @@ export class PostgresStorage implements IStorage {
         return false;
       }
       
-      const storedHash = result[0].passwordHash;
+      // Use lowercase 'passwordhash' to match PostgreSQL column name
+      const storedHash = result[0].passwordhash;
       const passwordHash = this.hashPassword(password);
       
       console.log(`[AUTH] Username: ${username}`);
-      console.log(`[AUTH] Stored hash exists: ${!!storedHash}`);
-      console.log(`[AUTH] Password hash exists: ${!!passwordHash}`);
+      console.log(`[AUTH] Stored hash: ${storedHash?.substring(0, 20)}...`);
+      console.log(`[AUTH] Input hash: ${passwordHash.substring(0, 20)}...`);
       console.log(`[AUTH] Hashes match: ${storedHash === passwordHash}`);
       
       if (storedHash === passwordHash) {
@@ -474,21 +476,8 @@ export class PostgresStorage implements IStorage {
         return true;
       }
       
-      // Fallback: try buffer comparison
-      try {
-        const userBuffer = Buffer.from(storedHash, "hex");
-        const passBuffer = Buffer.from(passwordHash, "hex");
-        if (userBuffer.length !== passBuffer.length) {
-          console.log(`[AUTH] Buffer length mismatch: ${userBuffer.length} vs ${passBuffer.length}`);
-          return false;
-        }
-        const isEqual = timingSafeEqual(userBuffer, passBuffer);
-        console.log(`[AUTH] Buffer comparison: ${isEqual}`);
-        return isEqual;
-      } catch (bufferError) {
-        console.error(`[AUTH] Buffer comparison error:`, bufferError);
-        return false;
-      }
+      console.log(`[AUTH] ❌ Password mismatch`);
+      return false;
     } catch (error) {
       console.error(`[AUTH] Error in verifyAdminUser:`, error);
       return false;
