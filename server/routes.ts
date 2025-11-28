@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage-json";
-import { categorySchema, subcategorySchema, planSchema, settingsSchema } from "@shared/schema";
+import { categorySchema, subcategorySchema, planSchema, settingsSchema, faqSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -186,6 +186,41 @@ export async function registerRoutes(
 
   app.delete("/api/plans/:id", async (req, res) => {
     const success = await storage.deletePlan(req.params.id);
+    res.json({ success });
+  });
+
+  // FAQs
+  app.get("/api/faqs", async (req, res) => {
+    const faqs = await storage.getFAQs();
+    res.json(faqs);
+  });
+
+  app.post("/api/faqs", async (req, res) => {
+    try {
+      const { question, answer } = faqSchema.parse(req.body);
+      const faq = await storage.createFAQ(question, answer);
+      res.status(201).json(faq);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid input" });
+    }
+  });
+
+  app.patch("/api/faqs/:id", async (req, res) => {
+    try {
+      const { question, answer } = faqSchema.parse(req.body);
+      const faq = await storage.updateFAQ(req.params.id, question, answer);
+      if (faq) {
+        res.json(faq);
+      } else {
+        res.status(404).json({ error: "FAQ not found" });
+      }
+    } catch (error) {
+      res.status(400).json({ error: "Invalid input" });
+    }
+  });
+
+  app.delete("/api/faqs/:id", async (req, res) => {
+    const success = await storage.deleteFAQ(req.params.id);
     res.json({ success });
   });
 

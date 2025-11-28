@@ -26,12 +26,20 @@ export interface Plan {
   subcategoryId: string;
 }
 
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+}
+
 export interface Settings {
   currency: "usd" | "inr";
   supportLink: string;
   redirectLink: string;
   instagramLink?: string;
   youtubeLink?: string;
+  email?: string;
+  documentationLink?: string;
 }
 
 export interface AdminUser {
@@ -63,14 +71,22 @@ export const planSchema = z.object({
   subcategoryId: z.string().min(1),
 });
 
+export const faqSchema = z.object({
+  question: z.string().min(1),
+  answer: z.string().min(1),
+});
+
 export const settingsSchema = z.object({
   currency: z.enum(["usd", "inr"]),
   supportLink: z.string().url(),
   redirectLink: z.string().url(),
   instagramLink: z.string().url().optional(),
   youtubeLink: z.string().url().optional(),
+  email: z.string().email().optional(),
+  documentationLink: z.string().url().optional(),
 });
 
 export type InsertCategory = z.infer<typeof categorySchema>;
 export type InsertSubcategory = z.infer<typeof subcategorySchema>;
 export type InsertPlan = z.infer<typeof planSchema>;
+export type InsertFAQ = z.infer<typeof faqSchema>;

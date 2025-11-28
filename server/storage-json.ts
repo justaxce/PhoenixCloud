@@ -1,4 +1,4 @@
-import { type Category, type Subcategory, type Plan, type Settings } from "@shared/schema";
+import { type Category, type Subcategory, type Plan, type Settings, type FAQ } from "@shared/schema";
 import { randomUUID, scryptSync, timingSafeEqual } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
@@ -9,6 +9,7 @@ interface StorageData {
   categories: Category[];
   subcategories: Subcategory[];
   plans: Plan[];
+  faqs: FAQ[];
   settings: Settings;
   adminUsers: Array<{ id: string; username: string; passwordHash: string }>;
 }
@@ -31,6 +32,11 @@ export interface IStorage {
   createPlan(plan: Omit<Plan, "id">): Promise<Plan>;
   updatePlan(id: string, plan: Partial<Plan>): Promise<Plan | undefined>;
   deletePlan(id: string): Promise<boolean>;
+
+  getFAQs(): Promise<FAQ[]>;
+  createFAQ(question: string, answer: string): Promise<FAQ>;
+  updateFAQ(id: string, question: string, answer: string): Promise<FAQ | undefined>;
+  deleteFAQ(id: string): Promise<boolean>;
 
   getSettings(): Promise<Settings>;
   updateSettings(settings: Settings): Promise<Settings>;
@@ -74,6 +80,7 @@ export class JsonStorage implements IStorage {
       categories: [],
       subcategories: [],
       plans: [],
+      faqs: [],
       settings: {
         currency: "usd",
         supportLink: "https://discord.gg/EX6Dydyar5",
@@ -205,6 +212,35 @@ export class JsonStorage implements IStorage {
     const index = this.data.plans.findIndex((p) => p.id === id);
     if (index === -1) return false;
     this.data.plans.splice(index, 1);
+    this.saveData();
+    return true;
+  }
+
+  // FAQs
+  async getFAQs(): Promise<FAQ[]> {
+    return this.data.faqs;
+  }
+
+  async createFAQ(question: string, answer: string): Promise<FAQ> {
+    const faq: FAQ = { id: randomUUID(), question, answer };
+    this.data.faqs.push(faq);
+    this.saveData();
+    return faq;
+  }
+
+  async updateFAQ(id: string, question: string, answer: string): Promise<FAQ | undefined> {
+    const faq = this.data.faqs.find((f) => f.id === id);
+    if (!faq) return undefined;
+    faq.question = question;
+    faq.answer = answer;
+    this.saveData();
+    return faq;
+  }
+
+  async deleteFAQ(id: string): Promise<boolean> {
+    const index = this.data.faqs.findIndex((f) => f.id === id);
+    if (index === -1) return false;
+    this.data.faqs.splice(index, 1);
     this.saveData();
     return true;
   }

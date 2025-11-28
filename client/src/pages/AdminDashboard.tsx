@@ -23,6 +23,8 @@ import {
   AddPlanDialog,
 } from "@/components/AdminDialogs";
 import { AdminUserDialog } from "@/components/AdminUserDialog";
+import { FAQDialog } from "@/components/FAQDialog";
+import type { FAQ } from "@shared/schema";
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -32,6 +34,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [adminUsers, setAdminUsers] = useState<Array<{ id: string; username: string }>>([]);
   const [settings, setSettings] = useState<SettingsType>({ discordLink: "" });
 
@@ -39,6 +42,8 @@ export default function AdminDashboard() {
   const [redirectLink, setRedirectLink] = useState("");
   const [instagramLink, setInstagramLink] = useState("");
   const [youtubeLink, setYoutubeLink] = useState("");
+  const [email, setEmail] = useState("");
+  const [documentationLink, setDocumentationLink] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
 
@@ -52,6 +57,8 @@ export default function AdminDashboard() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [showAddFAQ, setShowAddFAQ] = useState(false);
+  const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
 
   useEffect(() => {
     loadData();
@@ -59,10 +66,11 @@ export default function AdminDashboard() {
 
   const loadData = async () => {
     try {
-      const [catsRes, subsRes, plansRes, setsRes, usersRes] = await Promise.all([
+      const [catsRes, subsRes, plansRes, faqsRes, setsRes, usersRes] = await Promise.all([
         fetch("/api/categories"),
         fetch("/api/subcategories"),
         fetch("/api/plans"),
+        fetch("/api/faqs"),
         fetch("/api/settings"),
         fetch("/api/admin/users"),
       ]);
@@ -70,6 +78,7 @@ export default function AdminDashboard() {
       if (catsRes.ok) setCategories(await catsRes.json());
       if (subsRes.ok) setSubcategories(await subsRes.json());
       if (plansRes.ok) setPlans(await plansRes.json());
+      if (faqsRes.ok) setFAQs(await faqsRes.json());
       if (setsRes.ok) {
         const s = await setsRes.json();
         setSettings(s);
@@ -77,6 +86,8 @@ export default function AdminDashboard() {
         setRedirectLink(s.redirectLink);
         setInstagramLink(s.instagramLink || "");
         setYoutubeLink(s.youtubeLink || "");
+        setEmail(s.email || "");
+        setDocumentationLink(s.documentationLink || "");
       }
       if (usersRes.ok) setAdminUsers(await usersRes.json());
     } catch (error) {
@@ -95,7 +106,9 @@ export default function AdminDashboard() {
           supportLink, 
           redirectLink,
           instagramLink,
-          youtubeLink
+          youtubeLink,
+          email,
+          documentationLink
         }),
       });
       if (res.ok) {
@@ -252,6 +265,39 @@ export default function AdminDashboard() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Your YouTube channel URL
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Contact Email
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="contact@phoenixcloud.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    data-testid="input-email"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Your contact email address
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="documentationLink" className="text-sm font-medium">
+                    Documentation Link
+                  </label>
+                  <Input
+                    id="documentationLink"
+                    placeholder="https://docs.phoenixcloud.com"
+                    value={documentationLink}
+                    onChange={(e) => setDocumentationLink(e.target.value)}
+                    data-testid="input-documentation-link"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Link to your documentation or knowledge base
                   </p>
                 </div>
 
@@ -493,6 +539,60 @@ export default function AdminDashboard() {
                 </Button>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>FAQs ({faqs.length})</CardTitle>
+                <CardDescription>Manage frequently asked questions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 mb-4">
+                  {faqs.map((faq) => (
+                    <div
+                      key={faq.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
+                      data-testid={`item-faq-${faq.id}`}
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium">{faq.question}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{faq.answer}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingFAQ(faq);
+                            setShowAddFAQ(true);
+                          }}
+                          data-testid={`button-edit-faq-${faq.id}`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => confirmDelete("faq", faq.id)}
+                          data-testid={`button-delete-faq-${faq.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  onClick={() => setShowAddFAQ(true)}
+                  data-testid="button-add-faq"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add FAQ
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </main>
@@ -544,6 +644,16 @@ export default function AdminDashboard() {
         mode="edit"
         user={editingUser || undefined}
         onSuccess={loadData}
+      />
+
+      <FAQDialog
+        open={showAddFAQ}
+        onOpenChange={(open) => {
+          if (!open) setEditingFAQ(null);
+          setShowAddFAQ(open);
+        }}
+        onSuccess={loadData}
+        editingFAQ={editingFAQ}
       />
 
       {/* Delete Confirmation */}
