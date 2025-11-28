@@ -48,6 +48,32 @@ export default function AdminDashboard() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
 
+  const [heroTitleLine1, setHeroTitleLine1] = useState("");
+  const [heroTitleLine2, setHeroTitleLine2] = useState("");
+  const [heroDescription, setHeroDescription] = useState("");
+  const [stat1Value, setStat1Value] = useState("");
+  const [stat1Label, setStat1Label] = useState("");
+  const [stat2Value, setStat2Value] = useState("");
+  const [stat2Label, setStat2Label] = useState("");
+  const [stat3Value, setStat3Value] = useState("");
+  const [stat3Label, setStat3Label] = useState("");
+  const [featuresSectionTitle, setFeaturesSectionTitle] = useState("");
+  const [featuresSectionDescription, setFeaturesSectionDescription] = useState("");
+  const [feature1Title, setFeature1Title] = useState("");
+  const [feature1Description, setFeature1Description] = useState("");
+  const [feature2Title, setFeature2Title] = useState("");
+  const [feature2Description, setFeature2Description] = useState("");
+  const [feature3Title, setFeature3Title] = useState("");
+  const [feature3Description, setFeature3Description] = useState("");
+  const [feature4Title, setFeature4Title] = useState("");
+  const [feature4Description, setFeature4Description] = useState("");
+  const [feature5Title, setFeature5Title] = useState("");
+  const [feature5Description, setFeature5Description] = useState("");
+  const [feature6Title, setFeature6Title] = useState("");
+  const [feature6Description, setFeature6Description] = useState("");
+  const [ctaTitle, setCtaTitle] = useState("");
+  const [ctaDescription, setCtaDescription] = useState("");
+
   // Dialog states
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddSubcategory, setShowAddSubcategory] = useState(false);
@@ -106,6 +132,31 @@ export default function AdminDashboard() {
         setYoutubeLink(s.youtubeLink || "");
         setEmail(s.email || "");
         setDocumentationLink(s.documentationLink || "");
+        setHeroTitleLine1(s.heroTitleLine1 || "Cloud Hosting That");
+        setHeroTitleLine2(s.heroTitleLine2 || "Rises Above");
+        setHeroDescription(s.heroDescription || "");
+        setStat1Value(s.stat1Value || "99.9%");
+        setStat1Label(s.stat1Label || "Uptime SLA");
+        setStat2Value(s.stat2Value || "50+");
+        setStat2Label(s.stat2Label || "Global Locations");
+        setStat3Value(s.stat3Value || "24/7");
+        setStat3Label(s.stat3Label || "Expert Support");
+        setFeaturesSectionTitle(s.featuresSectionTitle || "Why Choose Phoenix Cloud?");
+        setFeaturesSectionDescription(s.featuresSectionDescription || "");
+        setFeature1Title(s.feature1Title || "Blazing Fast");
+        setFeature1Description(s.feature1Description || "");
+        setFeature2Title(s.feature2Title || "DDoS Protection");
+        setFeature2Description(s.feature2Description || "");
+        setFeature3Title(s.feature3Title || "Global Network");
+        setFeature3Description(s.feature3Description || "");
+        setFeature4Title(s.feature4Title || "Instant Scaling");
+        setFeature4Description(s.feature4Description || "");
+        setFeature5Title(s.feature5Title || "24/7 Support");
+        setFeature5Description(s.feature5Description || "");
+        setFeature6Title(s.feature6Title || "99.9% Uptime");
+        setFeature6Description(s.feature6Description || "");
+        setCtaTitle(s.ctaTitle || "Ready to Rise Above?");
+        setCtaDescription(s.ctaDescription || "");
       }
 
       // Load admin users
@@ -132,7 +183,32 @@ export default function AdminDashboard() {
           instagramLink,
           youtubeLink,
           email,
-          documentationLink
+          documentationLink,
+          heroTitleLine1,
+          heroTitleLine2,
+          heroDescription,
+          stat1Value,
+          stat1Label,
+          stat2Value,
+          stat2Label,
+          stat3Value,
+          stat3Label,
+          featuresSectionTitle,
+          featuresSectionDescription,
+          feature1Title,
+          feature1Description,
+          feature2Title,
+          feature2Description,
+          feature3Title,
+          feature3Description,
+          feature4Title,
+          feature4Description,
+          feature5Title,
+          feature5Description,
+          feature6Title,
+          feature6Description,
+          ctaTitle,
+          ctaDescription
         }),
       });
       if (res.ok) {
@@ -210,8 +286,9 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="grid w-full max-w-3xl grid-cols-4">
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="homepage">Homepage</TabsTrigger>
             <TabsTrigger value="admin">Admin Users</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
           </TabsList>
@@ -328,6 +405,208 @@ export default function AdminDashboard() {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="homepage" className="mt-8 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Hero Section</CardTitle>
+                <CardDescription>Edit the main hero section on the homepage</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Title Line 1</label>
+                    <Input
+                      placeholder="Cloud Hosting That"
+                      value={heroTitleLine1}
+                      onChange={(e) => setHeroTitleLine1(e.target.value)}
+                      data-testid="input-hero-title-1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Title Line 2</label>
+                    <Input
+                      placeholder="Rises Above"
+                      value={heroTitleLine2}
+                      onChange={(e) => setHeroTitleLine2(e.target.value)}
+                      data-testid="input-hero-title-2"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Description</label>
+                  <Input
+                    placeholder="Experience blazing-fast performance..."
+                    value={heroDescription}
+                    onChange={(e) => setHeroDescription(e.target.value)}
+                    data-testid="input-hero-description"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Stats Cards</CardTitle>
+                <CardDescription>Edit the 3 stats cards below the hero section</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Stat 1 Value</label>
+                    <Input
+                      placeholder="99.9%"
+                      value={stat1Value}
+                      onChange={(e) => setStat1Value(e.target.value)}
+                      data-testid="input-stat1-value"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Stat 1 Label</label>
+                    <Input
+                      placeholder="Uptime SLA"
+                      value={stat1Label}
+                      onChange={(e) => setStat1Label(e.target.value)}
+                      data-testid="input-stat1-label"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Stat 2 Value</label>
+                    <Input
+                      placeholder="50+"
+                      value={stat2Value}
+                      onChange={(e) => setStat2Value(e.target.value)}
+                      data-testid="input-stat2-value"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Stat 2 Label</label>
+                    <Input
+                      placeholder="Global Locations"
+                      value={stat2Label}
+                      onChange={(e) => setStat2Label(e.target.value)}
+                      data-testid="input-stat2-label"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Stat 3 Value</label>
+                    <Input
+                      placeholder="24/7"
+                      value={stat3Value}
+                      onChange={(e) => setStat3Value(e.target.value)}
+                      data-testid="input-stat3-value"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Stat 3 Label</label>
+                    <Input
+                      placeholder="Expert Support"
+                      value={stat3Label}
+                      onChange={(e) => setStat3Label(e.target.value)}
+                      data-testid="input-stat3-label"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Features Section</CardTitle>
+                <CardDescription>Edit the "Why Choose Phoenix Cloud?" section</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Section Title</label>
+                    <Input
+                      placeholder="Why Choose Phoenix Cloud?"
+                      value={featuresSectionTitle}
+                      onChange={(e) => setFeaturesSectionTitle(e.target.value)}
+                      data-testid="input-features-title"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Section Description</label>
+                    <Input
+                      placeholder="Built for performance, reliability, and ease of use."
+                      value={featuresSectionDescription}
+                      onChange={(e) => setFeaturesSectionDescription(e.target.value)}
+                      data-testid="input-features-description"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-4 mt-4">
+                  <p className="text-sm font-medium mb-4">Feature Cards</p>
+                  <div className="space-y-4">
+                    {[
+                      { title: feature1Title, setTitle: setFeature1Title, desc: feature1Description, setDesc: setFeature1Description, num: 1 },
+                      { title: feature2Title, setTitle: setFeature2Title, desc: feature2Description, setDesc: setFeature2Description, num: 2 },
+                      { title: feature3Title, setTitle: setFeature3Title, desc: feature3Description, setDesc: setFeature3Description, num: 3 },
+                      { title: feature4Title, setTitle: setFeature4Title, desc: feature4Description, setDesc: setFeature4Description, num: 4 },
+                      { title: feature5Title, setTitle: setFeature5Title, desc: feature5Description, setDesc: setFeature5Description, num: 5 },
+                      { title: feature6Title, setTitle: setFeature6Title, desc: feature6Description, setDesc: setFeature6Description, num: 6 },
+                    ].map((feature) => (
+                      <div key={feature.num} className="grid grid-cols-2 gap-4 p-3 border rounded-lg">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Feature {feature.num} Title</label>
+                          <Input
+                            value={feature.title}
+                            onChange={(e) => feature.setTitle(e.target.value)}
+                            data-testid={`input-feature${feature.num}-title`}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Feature {feature.num} Description</label>
+                          <Input
+                            value={feature.desc}
+                            onChange={(e) => feature.setDesc(e.target.value)}
+                            data-testid={`input-feature${feature.num}-desc`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>CTA Section</CardTitle>
+                <CardDescription>Edit the "Ready to Rise Above?" call-to-action section</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">CTA Title</label>
+                  <Input
+                    placeholder="Ready to Rise Above?"
+                    value={ctaTitle}
+                    onChange={(e) => setCtaTitle(e.target.value)}
+                    data-testid="input-cta-title"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">CTA Description</label>
+                  <Input
+                    placeholder="Join thousands of satisfied customers..."
+                    value={ctaDescription}
+                    onChange={(e) => setCtaDescription(e.target.value)}
+                    data-testid="input-cta-description"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button onClick={updateSettings} className="w-full" data-testid="button-save-homepage">
+              Save Homepage Content
+            </Button>
           </TabsContent>
 
           <TabsContent value="admin" className="mt-8">
