@@ -451,16 +451,33 @@ export class PostgresStorage implements IStorage {
   async verifyAdminUser(username: string, password: string): Promise<boolean> {
     await this.initializeDatabase();
     const result = await sql`SELECT passwordHash FROM admin_users WHERE username = ${username}`;
-    if (result.length === 0) return false;
+    if (result.length === 0) {
+      console.log(`[AUTH] User ${username} not found`);
+      return false;
+    }
     
     const storedHash = result[0].passwordHash;
     const passwordHash = this.hashPassword(password);
     
+    console.log(`[AUTH] Username: ${username}`);
+    console.log(`[AUTH] Stored hash: ${storedHash.substring(0, 20)}...`);
+    console.log(`[AUTH] Password hash: ${passwordHash.substring(0, 20)}...`);
+    console.log(`[AUTH] Hashes match: ${storedHash === passwordHash}`);
+    
     try {
+      if (storedHash === passwordHash) {
+        return true;
+      }
+      // Fallback: try buffer comparison
       const userBuffer = Buffer.from(storedHash, "hex");
       const passBuffer = Buffer.from(passwordHash, "hex");
+      if (userBuffer.length !== passBuffer.length) {
+        console.log(`[AUTH] Buffer length mismatch: ${userBuffer.length} vs ${passBuffer.length}`);
+        return false;
+      }
       return timingSafeEqual(userBuffer, passBuffer);
-    } catch {
+    } catch (error) {
+      console.error(`[AUTH] Error verifying password:`, error);
       return false;
     }
   }
