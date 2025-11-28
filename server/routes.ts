@@ -81,13 +81,18 @@ export async function registerRoutes(
 
   // Categories
   app.get("/api/categories", async (req, res) => {
-    const categories = await storage.getCategories();
-    const subcategories = await storage.getSubcategories();
-    const result = categories.map((cat) => ({
-      ...cat,
-      subcategories: subcategories.filter((sub) => sub.categoryId === cat.id),
-    }));
-    res.json(result);
+    try {
+      const categories = await storage.getCategories();
+      const subcategories = await storage.getSubcategories();
+      const result = categories.map((cat) => ({
+        ...cat,
+        subcategories: subcategories.filter((sub) => sub.categoryId === cat.id),
+      }));
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error fetching categories:", error.message);
+      res.status(503).json({ error: "Database temporarily unavailable", data: [] });
+    }
   });
 
   app.post("/api/categories", async (req, res) => {
@@ -115,14 +120,24 @@ export async function registerRoutes(
   });
 
   app.delete("/api/categories/:id", async (req, res) => {
-    const success = await storage.deleteCategory(req.params.id);
-    res.json({ success });
+    try {
+      const success = await storage.deleteCategory(req.params.id);
+      res.json({ success });
+    } catch (error: any) {
+      console.error("Error deleting category:", error.message);
+      res.status(500).json({ error: "Error deleting category" });
+    }
   });
 
   // Subcategories
   app.get("/api/subcategories", async (req, res) => {
-    const subcategories = await storage.getSubcategories();
-    res.json(subcategories);
+    try {
+      const subcategories = await storage.getSubcategories();
+      res.json(subcategories);
+    } catch (error: any) {
+      console.error("Error fetching subcategories:", error.message);
+      res.status(503).json([]);
+    }
   });
 
   app.post("/api/subcategories", async (req, res) => {
@@ -150,14 +165,24 @@ export async function registerRoutes(
   });
 
   app.delete("/api/subcategories/:id", async (req, res) => {
-    const success = await storage.deleteSubcategory(req.params.id);
-    res.json({ success });
+    try {
+      const success = await storage.deleteSubcategory(req.params.id);
+      res.json({ success });
+    } catch (error: any) {
+      console.error("Error deleting subcategory:", error.message);
+      res.status(500).json({ error: "Error deleting subcategory" });
+    }
   });
 
   // Plans
   app.get("/api/plans", async (req, res) => {
-    const plans = await storage.getPlans();
-    res.json(plans);
+    try {
+      const plans = await storage.getPlans();
+      res.json(plans);
+    } catch (error: any) {
+      console.error("Error fetching plans:", error.message);
+      res.status(503).json([]);
+    }
   });
 
   app.post("/api/plans", async (req, res) => {
@@ -185,14 +210,24 @@ export async function registerRoutes(
   });
 
   app.delete("/api/plans/:id", async (req, res) => {
-    const success = await storage.deletePlan(req.params.id);
-    res.json({ success });
+    try {
+      const success = await storage.deletePlan(req.params.id);
+      res.json({ success });
+    } catch (error: any) {
+      console.error("Error deleting plan:", error.message);
+      res.status(500).json({ error: "Error deleting plan" });
+    }
   });
 
   // FAQs
   app.get("/api/faqs", async (req, res) => {
-    const faqs = await storage.getFAQs();
-    res.json(faqs);
+    try {
+      const faqs = await storage.getFAQs();
+      res.json(faqs);
+    } catch (error: any) {
+      console.error("Error fetching FAQs:", error.message);
+      res.status(503).json([]);
+    }
   });
 
   app.post("/api/faqs", async (req, res) => {
@@ -220,14 +255,55 @@ export async function registerRoutes(
   });
 
   app.delete("/api/faqs/:id", async (req, res) => {
-    const success = await storage.deleteFAQ(req.params.id);
-    res.json({ success });
+    try {
+      const success = await storage.deleteFAQ(req.params.id);
+      res.json({ success });
+    } catch (error: any) {
+      console.error("Error deleting FAQ:", error.message);
+      res.status(500).json({ error: "Error deleting FAQ" });
+    }
   });
 
   // Settings
   app.get("/api/settings", async (req, res) => {
-    const settings = await storage.getSettings();
-    res.json(settings);
+    try {
+      const settings = await storage.getSettings();
+      res.json(settings);
+    } catch (error: any) {
+      console.error("Error fetching settings:", error.message);
+      res.status(503).json({ 
+        currency: "usd", 
+        supportLink: "", 
+        redirectLink: "",
+        heroTitleLine1: "Cloud Hosting That",
+        heroTitleLine2: "Rises Above",
+        heroDescription: "Experience blazing-fast performance with Phoenix Cloud. 99.9% uptime guarantee, instant scaling, and 24/7 expert support.",
+        stat1Value: "99.9%",
+        stat1Label: "Uptime SLA",
+        stat2Value: "50+",
+        stat2Label: "Global Locations",
+        stat3Value: "24/7",
+        stat3Label: "Expert Support",
+        featuresSectionTitle: "Why Choose Phoenix Cloud?",
+        featuresSectionDescription: "Built for performance, reliability, and ease of use.",
+        feature1Title: "Blazing Fast",
+        feature1Description: "NVMe SSD storage and optimized infrastructure for lightning-quick load times.",
+        feature2Title: "DDoS Protection",
+        feature2Description: "Enterprise-grade protection against attacks, keeping your services online.",
+        feature3Title: "Global Network",
+        feature3Description: "Strategically located data centers for low latency worldwide.",
+        feature4Title: "Instant Scaling",
+        feature4Description: "Scale resources up or down instantly based on your needs.",
+        feature5Title: "24/7 Support",
+        feature5Description: "Expert support team available around the clock via Discord and tickets.",
+        feature6Title: "99.9% Uptime",
+        feature6Description: "Industry-leading SLA with guaranteed uptime for your peace of mind.",
+        ctaTitle: "Ready to Rise Above?",
+        ctaDescription: "Join thousands of satisfied customers who trust Phoenix Cloud for their hosting needs. Get started in minutes.",
+        backgroundImageLight: "",
+        backgroundImageDark: ""
+      });
+    }
   });
 
   app.post("/api/settings", async (req, res) => {
@@ -236,8 +312,12 @@ export async function registerRoutes(
       const updated = await storage.updateSettings(settings as any);
       res.json(updated);
     } catch (error: any) {
-      console.error("Settings validation error:", error.message);
-      res.status(400).json({ error: "Invalid input" });
+      console.error("Settings error:", error.message);
+      if (error.message.includes("validation")) {
+        res.status(400).json({ error: "Invalid input" });
+      } else {
+        res.status(503).json({ error: "Database temporarily unavailable" });
+      }
     }
   });
 

@@ -96,8 +96,8 @@ export function Hero({ settings }: HeroProps) {
         />
       )}
       
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" style={{ zIndex: 1 }} />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" style={{ zIndex: 2 }} />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/10 to-transparent" style={{ zIndex: 1 }} />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-black/10 via-transparent to-transparent" style={{ zIndex: 2 }} />
       
       {floatingIcons.map(({ Icon, className, delay, size }, index) => (
         <div
