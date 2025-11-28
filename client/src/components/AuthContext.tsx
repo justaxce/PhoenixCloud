@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -10,6 +10,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Restore auth state on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("phoenix-admin-auth");
+    if (stored === "true") {
+      setIsAuthenticated(true);
+    }
+    setIsLoading(false);
+  }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
@@ -35,6 +45,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(false);
     localStorage.removeItem("phoenix-admin-auth");
   };
+
+  if (isLoading) {
+    return <div className="min-h-screen" />;
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, login, logout }}>

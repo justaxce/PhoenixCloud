@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CurrencyProvider } from "@/components/CurrencyContext";
 import { AuthProvider, useAuth } from "@/components/AuthContext";
+import { useWebsiteData } from "@/lib/useWebsiteData";
 import NotFound from "@/pages/not-found";
 
 // Pages
@@ -16,75 +17,6 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
-
-// Mock data - todo: remove mock functionality
-const mockCategories: Array<{
-  id: string;
-  name: string;
-  slug: string;
-  subcategories: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    categoryId: string;
-  }>;
-}> = [
-  {
-    id: "1",
-    name: "VPS Hosting",
-    slug: "vps",
-    subcategories: [
-      { id: "1a", name: "Linux VPS", slug: "linux", categoryId: "1" },
-      { id: "1b", name: "Windows VPS", slug: "windows", categoryId: "1" },
-    ],
-  },
-  {
-    id: "2",
-    name: "Dedicated Servers",
-    slug: "dedicated",
-    subcategories: [
-      { id: "2a", name: "Intel Servers", slug: "intel", categoryId: "2" },
-      { id: "2b", name: "AMD Servers", slug: "amd", categoryId: "2" },
-    ],
-  },
-];
-
-const mockPlans = [
-  {
-    id: "plan-1",
-    name: "Starter VPS",
-    description: "Perfect for small projects",
-    priceUsd: "9.99",
-    priceInr: "849",
-    period: "month",
-    features: ["2 vCPU Cores", "4 GB RAM", "50 GB NVMe SSD", "1 TB Bandwidth", "DDoS Protection"],
-    popular: true,
-    categoryId: "1",
-    subcategoryId: "1a",
-  },
-  {
-    id: "plan-2",
-    name: "Pro VPS",
-    description: "For growing applications",
-    priceUsd: "29.99",
-    priceInr: "2499",
-    period: "month",
-    features: ["8 vCPU Cores", "16 GB RAM", "200 GB NVMe SSD", "10 TB Bandwidth", "DDoS Protection", "Priority Support"],
-    categoryId: "1",
-    subcategoryId: "1a",
-  },
-  {
-    id: "plan-3",
-    name: "Enterprise VPS",
-    description: "For demanding workloads",
-    priceUsd: "99.99",
-    priceInr: "8399",
-    period: "month",
-    features: ["16 vCPU Cores", "64 GB RAM", "1 TB NVMe SSD", "100 TB Bandwidth", "DDoS Protection", "Dedicated Support", "Custom Configuration"],
-    categoryId: "1",
-    subcategoryId: "1a",
-  },
-];
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { isAuthenticated } = useAuth();
@@ -97,15 +29,25 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 function Router() {
+  const { categories, plans, settings, isLoading } = useWebsiteData();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
-      <Route path="/" component={() => <Home categories={mockCategories} />} />
-      <Route path="/plans" component={() => <Plans categories={mockCategories} plans={mockPlans} discordLink="https://discord.gg/EX6Dydyar5" />} />
-      <Route path="/plans/:categorySlug" component={() => <Plans categories={mockCategories} plans={mockPlans} discordLink="https://discord.gg/EX6Dydyar5" />} />
-      <Route path="/plans/:categorySlug/:subcategorySlug" component={() => <Plans categories={mockCategories} plans={mockPlans} discordLink="https://discord.gg/EX6Dydyar5" />} />
-      <Route path="/support" component={() => <Support categories={mockCategories} discordLink="https://discord.gg/EX6Dydyar5" />} />
-      <Route path="/terms" component={() => <Terms categories={mockCategories} />} />
-      <Route path="/privacy" component={() => <Privacy categories={mockCategories} />} />
+      <Route path="/" component={() => <Home categories={categories} />} />
+      <Route path="/plans" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
+      <Route path="/plans/:categorySlug" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
+      <Route path="/plans/:categorySlug/:subcategorySlug" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
+      <Route path="/support" component={() => <Support categories={categories} discordLink={settings.supportLink} />} />
+      <Route path="/terms" component={() => <Terms categories={categories} />} />
+      <Route path="/privacy" component={() => <Privacy categories={categories} />} />
       <Route path="/admin" component={AdminLogin} />
       <Route path="/admin/dashboard" component={() => <ProtectedRoute component={AdminDashboard} />} />
       <Route component={NotFound} />
