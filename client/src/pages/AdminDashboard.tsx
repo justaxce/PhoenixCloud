@@ -116,12 +116,21 @@ export default function AdminDashboard() {
       if (deleteTarget.type === "admin-user") {
         endpoint = `/api/admin/users/${deleteTarget.id}`;
       } else {
-        endpoint = `/api/${deleteTarget.type}s/${deleteTarget.id}`;
+        // Properly pluralize: category -> categories, subcategory -> subcategories, plan -> plans
+        const pluralMap: Record<string, string> = {
+          category: "categories",
+          subcategory: "subcategories",
+          plan: "plans",
+        };
+        const plural = pluralMap[deleteTarget.type] || `${deleteTarget.type}s`;
+        endpoint = `/api/${plural}/${deleteTarget.id}`;
       }
       const res = await fetch(endpoint, { method: "DELETE" });
       if (res.ok) {
         toast({ title: "Deleted successfully" });
         loadData();
+      } else {
+        toast({ title: "Error deleting", variant: "destructive" });
       }
     } catch (error) {
       toast({ title: "Error deleting", variant: "destructive" });
