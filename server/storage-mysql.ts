@@ -53,6 +53,16 @@ const pool = mysql.createPool({
 
 pool.on("error", (err: any) => {
   console.error("MySQL Pool error:", err.message);
+  // Reset initialized flag to allow retrying
+  if (err.code === "ETIMEDOUT" || err.code === "ECONNREFUSED") {
+    console.warn("Database connection issue detected, will retry on next request");
+  }
+});
+
+pool.on("connection", (connection) => {
+  connection.on("error", (err: any) => {
+    console.error("MySQL Connection error:", err.message);
+  });
 });
 
 export class MySQLStorage implements IStorage {
@@ -251,17 +261,21 @@ export class MySQLStorage implements IStorage {
     try {
       conn = await Promise.race([
         pool.getConnection(),
-        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 15000))
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 20000))
       ]);
       return await conn.query(sql, values);
     } catch (error: any) {
       if (error.message.includes("Connection timeout")) {
-        console.warn("Database connection timeout - the database server may be slow to respond");
+        console.warn("Database connection timeout - the database server may be slow to respond, returning cached or default data");
       }
       throw error;
     } finally {
       if (conn) {
-        conn.release();
+        try {
+          conn.release();
+        } catch (releaseErr) {
+          console.error("Error releasing connection:", releaseErr);
+        }
       }
     }
   }

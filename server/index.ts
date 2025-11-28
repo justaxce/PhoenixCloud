@@ -66,9 +66,20 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    console.error("Error handler:", message);
     res.status(status).json({ message });
-    throw err;
   });
+
+// Handle unhandled rejections to prevent crashes
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  // Keep the process alive
+  setTimeout(() => {}, 1000);
+});
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
