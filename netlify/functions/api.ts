@@ -154,6 +154,30 @@ async function initializeDatabase(sql: any) {
   }
 }
 
+function mapSubcategoryToCamelCase(sub: any) {
+  return {
+    id: sub.id,
+    name: sub.name,
+    slug: sub.slug,
+    categoryId: sub.categoryid,
+  };
+}
+
+function mapPlanToCamelCase(row: any) {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    priceUsd: row.priceusd,
+    priceInr: row.priceinr,
+    period: row.period,
+    features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
+    popular: Boolean(row.popular),
+    categoryId: row.categoryid,
+    subcategoryId: row.subcategoryid,
+  };
+}
+
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "" };
@@ -170,7 +194,8 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     return jsonResponse(400, { error: "Invalid JSON" });
   }
 
-  let sql: any;
+  let sql: any = null;
+  
   try {
     sql = getConnection();
     await initializeDatabase(sql);
@@ -191,20 +216,17 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         
         if (storedHash === inputHash) {
           console.log(`[AUTH] Login successful for ${username}`);
-          await sql.end();
           return jsonResponse(200, { success: true });
         }
       }
       
       console.log(`[AUTH] Login failed for ${username}`);
-      await sql.end();
       return jsonResponse(401, { error: "Invalid credentials" });
     }
 
     // Admin Users - GET
     if (apiPath === "/admin/users" && method === "GET") {
       const rows = await sql`SELECT id, username FROM admin_users`;
-      await sql.end();
       return jsonResponse(200, rows);
     }
 
@@ -212,13 +234,11 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     if (apiPath === "/admin/users" && method === "POST") {
       const { username, password } = body;
       if (!username || !password) {
-        await sql.end();
         return jsonResponse(400, { error: "Username and password required" });
       }
       const id = randomUUID();
       const passwordHash = hashPassword(password);
       await sql`INSERT INTO admin_users (id, username, passwordhash) VALUES (${id}, ${username}, ${passwordHash})`;
-      await sql.end();
       return jsonResponse(201, { id, username });
     }
 
@@ -229,13 +249,11 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       if (method === "PATCH") {
         const { password } = body;
         if (!password) {
-          await sql.end();
           return jsonResponse(400, { error: "Password required" });
         }
         const passwordHash = hashPassword(password);
         await sql`UPDATE admin_users SET passwordhash = ${passwordHash} WHERE id = ${userId}`;
         const rows = await sql`SELECT id, username FROM admin_users WHERE id = ${userId}`;
-        await sql.end();
         if (rows.length === 0) {
           return jsonResponse(404, { error: "User not found" });
         }
@@ -243,7 +261,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       }
       if (method === "DELETE") {
         await sql`DELETE FROM admin_users WHERE id = ${userId}`;
-        await sql.end();
         return jsonResponse(200, { success: true });
       }
     }
@@ -253,10 +270,13 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const categories = await sql`SELECT * FROM categories`;
       const subcategories = await sql`SELECT * FROM subcategories`;
       const result = categories.map((cat: any) => ({
-        ...cat,
-        subcategories: subcategories.filter((sub: any) => sub.categoryid === cat.id),
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        subcategories: subcategories
+          .filter((sub: any) => sub.categoryid === cat.id)
+          .map(mapSubcategoryToCamelCase),
       }));
-      await sql.end();
       return jsonResponse(200, result);
     }
 
@@ -265,7 +285,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const { name, slug } = body;
       const id = randomUUID();
       await sql`INSERT INTO categories (id, name, slug) VALUES (${id}, ${name}, ${slug})`;
-      await sql.end();
       return jsonResponse(201, { id, name, slug });
     }
 
@@ -276,12 +295,10 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       if (method === "PATCH") {
         const { name, slug } = body;
         await sql`UPDATE categories SET name = ${name}, slug = ${slug} WHERE id = ${catId}`;
-        await sql.end();
         return jsonResponse(200, { id: catId, name, slug });
       }
       if (method === "DELETE") {
         await sql`DELETE FROM categories WHERE id = ${catId}`;
-        await sql.end();
         return jsonResponse(200, { success: true });
       }
     }
@@ -289,8 +306,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     // Subcategories - GET
     if (apiPath === "/subcategories" && method === "GET") {
       const rows = await sql`SELECT * FROM subcategories`;
-      await sql.end();
-      return jsonResponse(200, rows);
+      return jsonResponse(200, rows.map(mapSubcategoryToCamelCase));
     }
 
     // Subcategories - POST
@@ -298,7 +314,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const { name, slug, categoryId } = body;
       const id = randomUUID();
       await sql`INSERT INTO subcategories (id, name, slug, categoryid) VALUES (${id}, ${name}, ${slug}, ${categoryId})`;
-      await sql.end();
       return jsonResponse(201, { id, name, slug, categoryId });
     }
 
@@ -310,12 +325,10 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         const { name, slug } = body;
         await sql`UPDATE subcategories SET name = ${name}, slug = ${slug} WHERE id = ${subId}`;
         const rows = await sql`SELECT * FROM subcategories WHERE id = ${subId}`;
-        await sql.end();
-        return jsonResponse(200, rows[0]);
+        return jsonResponse(200, rows.length > 0 ? mapSubcategoryToCamelCase(rows[0]) : null);
       }
       if (method === "DELETE") {
         await sql`DELETE FROM subcategories WHERE id = ${subId}`;
-        await sql.end();
         return jsonResponse(200, { success: true });
       }
     }
@@ -323,20 +336,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     // Plans - GET
     if (apiPath === "/plans" && method === "GET") {
       const rows = await sql`SELECT * FROM plans`;
-      const plans = rows.map((row: any) => ({
-        id: row.id,
-        name: row.name,
-        description: row.description,
-        priceUsd: row.priceusd,
-        priceInr: row.priceinr,
-        period: row.period,
-        features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
-        popular: Boolean(row.popular),
-        categoryId: row.categoryid,
-        subcategoryId: row.subcategoryid,
-      }));
-      await sql.end();
-      return jsonResponse(200, plans);
+      return jsonResponse(200, rows.map(mapPlanToCamelCase));
     }
 
     // Plans - POST
@@ -347,7 +347,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         VALUES (${id}, ${body.name}, ${body.description}, ${body.priceUsd}, ${body.priceInr}, ${body.period},
                 ${JSON.stringify(body.features)}, ${body.popular || false}, ${body.categoryId}, ${body.subcategoryId})
       `;
-      await sql.end();
       return jsonResponse(201, { ...body, id });
     }
 
@@ -369,12 +368,10 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             subcategoryid = ${body.subcategoryId}
           WHERE id = ${planId}
         `;
-        await sql.end();
         return jsonResponse(200, { ...body, id: planId });
       }
       if (method === "DELETE") {
         await sql`DELETE FROM plans WHERE id = ${planId}`;
-        await sql.end();
         return jsonResponse(200, { success: true });
       }
     }
@@ -382,7 +379,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     // FAQs - GET
     if (apiPath === "/faqs" && method === "GET") {
       const rows = await sql`SELECT * FROM faqs`;
-      await sql.end();
       return jsonResponse(200, rows);
     }
 
@@ -391,7 +387,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const { question, answer } = body;
       const id = randomUUID();
       await sql`INSERT INTO faqs (id, question, answer) VALUES (${id}, ${question}, ${answer})`;
-      await sql.end();
       return jsonResponse(201, { id, question, answer });
     }
 
@@ -402,12 +397,10 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       if (method === "PATCH") {
         const { question, answer } = body;
         await sql`UPDATE faqs SET question = ${question}, answer = ${answer} WHERE id = ${faqId}`;
-        await sql.end();
         return jsonResponse(200, { id: faqId, question, answer });
       }
       if (method === "DELETE") {
         await sql`DELETE FROM faqs WHERE id = ${faqId}`;
-        await sql.end();
         return jsonResponse(200, { success: true });
       }
     }
@@ -416,7 +409,6 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     if (apiPath === "/settings" && method === "GET") {
       const rows = await sql`SELECT * FROM settings WHERE id = 1`;
       const row = rows[0] || {};
-      await sql.end();
       return jsonResponse(200, {
         currency: row.currency || "usd",
         supportLink: row.supportlink || "",
@@ -495,20 +487,21 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
           backgroundimagedark = ${body.backgroundImageDark || ""}
         WHERE id = 1
       `;
-      await sql.end();
       return jsonResponse(200, body);
     }
 
-    await sql.end();
     return jsonResponse(404, { error: "Not found" });
   } catch (error: any) {
     console.error("API Error:", error);
+    return jsonResponse(500, { error: error.message || "Internal server error" });
+  } finally {
     if (sql) {
       try {
         await sql.end();
-      } catch (e) {}
+      } catch (e) {
+        console.error("Error closing connection:", e);
+      }
     }
-    return jsonResponse(500, { error: error.message || "Internal server error" });
   }
 };
 

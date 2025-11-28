@@ -5,6 +5,8 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["postgres"]
+  included_files = ["node_modules/postgres/**"]
 
 [[redirects]]
   from = "/api/*"
