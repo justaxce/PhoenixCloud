@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/components/AuthContext";
-import { useTheme } from "@/components/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,6 @@ export default function AdminLogin() {
   const [, navigate] = useLocation();
   const { login } = useAuth();
   const { toast } = useToast();
-  const { theme } = useTheme();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +19,8 @@ export default function AdminLogin() {
     e.preventDefault();
     setIsLoading(true);
 
-    if (login(username, password)) {
+    const success = await login(username, password);
+    if (success) {
       toast({ title: "Welcome!", description: "Logged in successfully." });
       navigate("/admin/dashboard");
     } else {
@@ -48,7 +47,7 @@ export default function AdminLogin() {
             </div>
           </div>
           <CardTitle className="text-2xl">Phoenix Cloud Admin</CardTitle>
-          <CardDescription>Enter your credentials to access the admin panel</CardDescription>
+          <CardDescription>Enter your admin credentials to access the panel</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -58,7 +57,7 @@ export default function AdminLogin() {
               </label>
               <Input
                 id="username"
-                placeholder="admin"
+                placeholder="Enter username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
@@ -83,12 +82,6 @@ export default function AdminLogin() {
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-card rounded-lg border">
-            <p className="text-xs text-muted-foreground mb-2 font-semibold">Demo Credentials:</p>
-            <p className="text-xs text-muted-foreground">Username: <code className="bg-background px-2 py-1 rounded">admin</code></p>
-            <p className="text-xs text-muted-foreground">Password: <code className="bg-background px-2 py-1 rounded">phoenixcloud123</code></p>
-          </div>
         </CardContent>
       </Card>
     </div>

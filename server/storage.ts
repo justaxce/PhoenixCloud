@@ -1,5 +1,5 @@
 import { type Category, type Subcategory, type Plan, type Settings } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { randomUUID, scryptSync, timingSafeEqual } from "crypto";
 
 export interface IStorage {
   // Categories
@@ -26,6 +26,13 @@ export interface IStorage {
   // Settings
   getSettings(): Promise<Settings>;
   updateSettings(settings: Settings): Promise<Settings>;
+
+  // Admin Users
+  getAdminUsers(): Promise<any[]>;
+  createAdminUser(username: string, passwordHash: string): Promise<any>;
+  updateAdminUser(id: string, passwordHash: string): Promise<any | undefined>;
+  deleteAdminUser(id: string): Promise<boolean>;
+  verifyAdminUser(username: string, password: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -33,15 +40,22 @@ export class MemStorage implements IStorage {
   private subcategories: Map<string, Subcategory>;
   private plans: Map<string, Plan>;
   private settings: Settings;
+  private adminUsers: Map<string, any>;
 
   constructor() {
     this.categories = new Map();
     this.subcategories = new Map();
     this.plans = new Map();
+    this.adminUsers = new Map();
     this.settings = { discordLink: "https://discord.gg/EX6Dydyar5" };
 
     // Initialize with sample data
     this.initializeSampleData();
+  }
+
+  private hashPassword(password: string): string {
+    const salt = "phoenix-salt";
+    return scryptSync(password, salt, 32).toString("hex");
   }
 
   private initializeSampleData() {
@@ -67,6 +81,14 @@ export class MemStorage implements IStorage {
       subcategoryId: "1a",
     };
     this.plans.set(starterPlan.id, starterPlan);
+
+    // Initialize with default admin user
+    const adminId = randomUUID();
+    this.adminUsers.set(adminId, {
+      id: adminId,
+      username: "admin",
+      passwordHash: this.hashPassword("admin123"),
+    });
   }
 
   // Categories
@@ -165,6 +187,46 @@ export class MemStorage implements IStorage {
   async updateSettings(settings: Settings): Promise<Settings> {
     this.settings = settings;
     return settings;
+  }
+
+  // Admin Users
+  async getAdminUsers(): Promise<any[]> {
+    return Array.from(this.adminUsers.values()).map((user) => ({
+      id: user.id,
+      username: user.username,
+    }));
+  }
+
+  async createAdminUser(username: string, passwordHash: string): Promise<any> {
+    const id = randomUUID();
+    const user = { id, username, passwordHash };
+    this.adminUsers.set(id, user);
+    return { id, username };
+  }
+
+  async updateAdminUser(id: string, passwordHash: string): Promise<any | undefined> {
+    const user = this.adminUsers.get(id);
+    if (!user) return undefined;
+    const updated = { ...user, passwordHash };
+    this.adminUsers.set(id, updated);
+    return { id: updated.id, username: updated.username };
+  }
+
+  async deleteAdminUser(id: string): Promise<boolean> {
+    return this.adminUsers.delete(id);
+  }
+
+  async verifyAdminUser(username: string, password: string): Promise<boolean> {
+    const user = Array.from(this.adminUsers.values()).find((u) => u.username === username);
+    if (!user) return false;
+
+    const passwordHash = this.hashPassword(password);
+    try {
+      timingSafeEqual(Buffer.from(user.passwordHash), Buffer.from(passwordHash));
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 

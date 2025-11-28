@@ -15,13 +15,14 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Settings, Flame, LogOut, Plus, Trash2, Edit2 } from "lucide-react";
+import { Settings, Flame, LogOut, Plus, Trash2, Edit2, Users } from "lucide-react";
 import type { Category, Subcategory, Plan, Settings as SettingsType } from "@shared/schema";
 import {
   AddCategoryDialog,
   AddSubcategoryDialog,
   AddPlanDialog,
 } from "@/components/AdminDialogs";
+import { AdminUserDialog } from "@/components/AdminUserDialog";
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -31,6 +32,7 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [adminUsers, setAdminUsers] = useState<Array<{ id: string; username: string }>>([]);
   const [settings, setSettings] = useState<SettingsType>({ discordLink: "" });
 
   const [discordLink, setDiscordLink] = useState("");
@@ -41,6 +43,9 @@ export default function AdminDashboard() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddSubcategory, setShowAddSubcategory] = useState(false);
   const [showAddPlan, setShowAddPlan] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showEditUser, setShowEditUser] = useState(false);
+  const [editingUser, setEditingUser] = useState<{ id: string; username: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -48,11 +53,12 @@ export default function AdminDashboard() {
 
   const loadData = async () => {
     try {
-      const [catsRes, subsRes, plansRes, setsRes] = await Promise.all([
+      const [catsRes, subsRes, plansRes, setsRes, usersRes] = await Promise.all([
         fetch("/api/categories"),
         fetch("/api/subcategories"),
         fetch("/api/plans"),
         fetch("/api/settings"),
+        fetch("/api/admin/users"),
       ]);
 
       if (catsRes.ok) setCategories(await catsRes.json());
@@ -63,6 +69,7 @@ export default function AdminDashboard() {
         setSettings(s);
         setDiscordLink(s.discordLink);
       }
+      if (usersRes.ok) setAdminUsers(await usersRes.json());
     } catch (error) {
       console.error("Failed to load data:", error);
       toast({ title: "Error loading data", variant: "destructive" });
@@ -99,7 +106,12 @@ export default function AdminDashboard() {
     if (!deleteTarget) return;
 
     try {
-      const endpoint = `/api/${deleteTarget.type}s/${deleteTarget.id}`;
+      let endpoint = "";
+      if (deleteTarget.type === "admin-user") {
+        endpoint = `/api/admin/users/${deleteTarget.id}`;
+      } else {
+        endpoint = `/api/${deleteTarget.type}s/${deleteTarget.id}`;
+      }
       const res = await fetch(endpoint, { method: "DELETE" });
       if (res.ok) {
         toast({ title: "Deleted successfully" });
@@ -139,8 +151,9 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="admin">Admin Users</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
           </TabsList>
 
@@ -174,6 +187,63 @@ export default function AdminDashboard() {
                     This link is used for "Order Now" buttons and support channels.
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="admin" className="mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Admin Users ({adminUsers.length})
+                </CardTitle>
+                <CardDescription>Manage admin accounts</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 mb-4">
+                  {adminUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
+                      data-testid={`item-user-${user.id}`}
+                    >
+                      <div>
+                        <p className="font-medium">{user.username}</p>
+                        <p className="text-xs text-muted-foreground">ID: {user.id}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingUser(user);
+                            setShowEditUser(true);
+                          }}
+                          data-testid={`button-edit-user-${user.id}`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => confirmDelete("admin-user", user.id)}
+                          data-testid={`button-delete-user-${user.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={() => setShowCreateUser(true)}
+                  data-testid="button-create-user"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Admin User
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -336,6 +406,21 @@ export default function AdminDashboard() {
         onOpenChange={setShowAddPlan}
         categories={categories}
         subcategories={subcategories}
+        onSuccess={loadData}
+      />
+
+      <AdminUserDialog
+        open={showCreateUser}
+        onOpenChange={setShowCreateUser}
+        mode="create"
+        onSuccess={loadData}
+      />
+
+      <AdminUserDialog
+        open={showEditUser}
+        onOpenChange={setShowEditUser}
+        mode="edit"
+        user={editingUser || undefined}
         onSuccess={loadData}
       />
 

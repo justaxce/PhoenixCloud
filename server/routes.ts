@@ -7,6 +7,78 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Admin Authentication
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const valid = await storage.verifyAdminUser(username, password);
+      if (valid) {
+        res.json({ success: true });
+      } else {
+        res.status(401).json({ error: "Invalid credentials" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Authentication error" });
+    }
+  });
+
+  // Admin Users
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const users = await storage.getAdminUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ error: "Error fetching users" });
+    }
+  });
+
+  app.post("/api/admin/users", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      if (!username || !password) {
+        res.status(400).json({ error: "Username and password required" });
+        return;
+      }
+      const salt = "phoenix-salt";
+      const { scryptSync } = await import("crypto");
+      const passwordHash = scryptSync(password, salt, 32).toString("hex");
+      const user = await storage.createAdminUser(username, passwordHash);
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(500).json({ error: "Error creating user" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", async (req, res) => {
+    try {
+      const { password } = req.body;
+      if (!password) {
+        res.status(400).json({ error: "Password required" });
+        return;
+      }
+      const salt = "phoenix-salt";
+      const { scryptSync } = await import("crypto");
+      const passwordHash = scryptSync(password, salt, 32).toString("hex");
+      const user = await storage.updateAdminUser(req.params.id, passwordHash);
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(404).json({ error: "User not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Error updating user" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteAdminUser(req.params.id);
+      res.json({ success });
+    } catch (error) {
+      res.status(500).json({ error: "Error deleting user" });
+    }
+  });
+
   // Categories
   app.get("/api/categories", async (req, res) => {
     const categories = await storage.getCategories();

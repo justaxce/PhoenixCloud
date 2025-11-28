@@ -29,6 +29,12 @@ export interface Settings {
   discordLink: string;
 }
 
+export interface AdminUser {
+  id: string;
+  username: string;
+  passwordHash: string;
+}
+
 export const categorySchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
