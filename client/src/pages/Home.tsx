@@ -20,11 +20,27 @@ interface HomeProps {
 export default function Home({ categories = [] }: HomeProps) {
   const [settings, setSettings] = useState<Settings | null>(null);
 
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch("/api/settings");
+      const data = await res.json();
+      setSettings(data);
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/settings")
-      .then((res) => res.json())
-      .then((data) => setSettings(data))
-      .catch((err) => console.error("Failed to load settings:", err));
+    fetchSettings();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchSettings();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
   return (
