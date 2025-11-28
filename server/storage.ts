@@ -449,35 +449,48 @@ export class PostgresStorage implements IStorage {
   }
 
   async verifyAdminUser(username: string, password: string): Promise<boolean> {
-    await this.initializeDatabase();
-    const result = await sql`SELECT passwordHash FROM admin_users WHERE username = ${username}`;
-    if (result.length === 0) {
-      console.log(`[AUTH] User ${username} not found`);
-      return false;
-    }
-    
-    const storedHash = result[0].passwordHash;
-    const passwordHash = this.hashPassword(password);
-    
-    console.log(`[AUTH] Username: ${username}`);
-    console.log(`[AUTH] Stored hash: ${storedHash.substring(0, 20)}...`);
-    console.log(`[AUTH] Password hash: ${passwordHash.substring(0, 20)}...`);
-    console.log(`[AUTH] Hashes match: ${storedHash === passwordHash}`);
-    
     try {
-      if (storedHash === passwordHash) {
-        return true;
-      }
-      // Fallback: try buffer comparison
-      const userBuffer = Buffer.from(storedHash, "hex");
-      const passBuffer = Buffer.from(passwordHash, "hex");
-      if (userBuffer.length !== passBuffer.length) {
-        console.log(`[AUTH] Buffer length mismatch: ${userBuffer.length} vs ${passBuffer.length}`);
+      await this.initializeDatabase();
+      console.log(`[AUTH] Looking up user: ${username}`);
+      
+      const result = await sql`SELECT passwordHash FROM admin_users WHERE username = ${username}`;
+      console.log(`[AUTH] Query returned ${result.length} results`);
+      
+      if (result.length === 0) {
+        console.log(`[AUTH] User ${username} not found in database`);
         return false;
       }
-      return timingSafeEqual(userBuffer, passBuffer);
+      
+      const storedHash = result[0].passwordHash;
+      const passwordHash = this.hashPassword(password);
+      
+      console.log(`[AUTH] Username: ${username}`);
+      console.log(`[AUTH] Stored hash exists: ${!!storedHash}`);
+      console.log(`[AUTH] Password hash exists: ${!!passwordHash}`);
+      console.log(`[AUTH] Hashes match: ${storedHash === passwordHash}`);
+      
+      if (storedHash === passwordHash) {
+        console.log(`[AUTH] ✅ Password verification successful`);
+        return true;
+      }
+      
+      // Fallback: try buffer comparison
+      try {
+        const userBuffer = Buffer.from(storedHash, "hex");
+        const passBuffer = Buffer.from(passwordHash, "hex");
+        if (userBuffer.length !== passBuffer.length) {
+          console.log(`[AUTH] Buffer length mismatch: ${userBuffer.length} vs ${passBuffer.length}`);
+          return false;
+        }
+        const isEqual = timingSafeEqual(userBuffer, passBuffer);
+        console.log(`[AUTH] Buffer comparison: ${isEqual}`);
+        return isEqual;
+      } catch (bufferError) {
+        console.error(`[AUTH] Buffer comparison error:`, bufferError);
+        return false;
+      }
     } catch (error) {
-      console.error(`[AUTH] Error verifying password:`, error);
+      console.error(`[AUTH] Error in verifyAdminUser:`, error);
       return false;
     }
   }
