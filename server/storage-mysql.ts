@@ -45,14 +45,14 @@ const pool = mysql.createPool({
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   waitForConnections: true,
-  connectionLimit: 5,
-  queueLimit: 10,
+  connectionLimit: 10,
+  queueLimit: 20,
   enableKeepAlive: true,
-  keepAliveInitialDelayMs: 0,
+  decimalNumbers: true,
 });
 
 pool.on("error", (err: any) => {
-  console.error("Pool error:", err);
+  console.error("MySQL Pool error:", err.message);
 });
 
 export class MySQLStorage implements IStorage {
@@ -65,8 +65,20 @@ export class MySQLStorage implements IStorage {
 
   async initializeDatabase(): Promise<void> {
     if (this.initialized) return;
+    this.initialized = true;
 
-    const connection = await pool.getConnection();
+    let connection;
+    try {
+      connection = await Promise.race([
+        pool.getConnection(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 5000))
+      ]);
+    } catch (error: any) {
+      this.initialized = false;
+      console.error("Failed to get database connection:", error.message);
+      return;
+    }
+    
     try {
       await connection.query(`
         CREATE TABLE IF NOT EXISTS categories (
@@ -223,19 +235,34 @@ export class MySQLStorage implements IStorage {
         console.log("Created default admin user: admin / admin123");
       }
 
-      this.initialized = true;
       console.log("Database initialized successfully");
+    } catch (error: any) {
+      this.initialized = false;
+      console.error("Database initialization error:", error.message);
     } finally {
-      connection.release();
+      if (connection) {
+        connection.release();
+      }
     }
   }
 
   private async query(sql: string, values?: any[]): Promise<[any[], any]> {
-    const conn = await pool.getConnection();
+    let conn;
     try {
+      conn = await Promise.race([
+        pool.getConnection(),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 5000))
+      ]);
       return await conn.query(sql, values);
+    } catch (error: any) {
+      if (error.message.includes("Queue limit") || error.message.includes("timeout")) {
+        console.warn("Connection pool issue:", error.message, "- retrying");
+      }
+      throw error;
     } finally {
-      conn.release();
+      if (conn) {
+        conn.release();
+      }
     }
   }
 
