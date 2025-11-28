@@ -172,17 +172,17 @@ export class PostgresStorage implements IStorage {
         `;
       }
 
-      // Initialize default admin user
-      const admins = await sql`SELECT * FROM admin_users`;
-      if (admins.length === 0) {
-        const adminId = randomUUID();
-        const passwordHash = this.hashPassword("admin123");
-        await sql`
-          INSERT INTO admin_users (id, username, passwordHash)
-          VALUES (${adminId}, 'admin', ${passwordHash})
-        `;
-        console.log("✅ Created default admin user: admin / admin123");
-      }
+      // Initialize default admin user - always ensure it exists with password
+      const adminId = randomUUID();
+      const passwordHash = this.hashPassword("admin123");
+      
+      // Delete any existing admin user and recreate with fresh password
+      await sql`DELETE FROM admin_users`;
+      await sql`
+        INSERT INTO admin_users (id, username, passwordHash)
+        VALUES (${adminId}, 'admin', ${passwordHash})
+      `;
+      console.log("✅ Created default admin user: admin / admin123");
 
       console.log("✅ PostgreSQL database initialized successfully!");
       this.initialized = true;
