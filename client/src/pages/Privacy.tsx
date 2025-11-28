@@ -15,10 +15,10 @@ interface PrivacyProps {
 
 export default function Privacy({ categories = [] }: PrivacyProps) {
   return (
-    <div className="min-h-screen flex flex-col relative z-10">
+    <div className="min-h-screen flex flex-col">
       <Header categories={categories} />
-      <main className="flex-1 relative z-10">
-        <section className="py-16 relative z-10 bg-background/80 backdrop-blur-sm">
+      <main className="flex-1">
+        <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-2xl text-center">
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
@@ -31,7 +31,7 @@ export default function Privacy({ categories = [] }: PrivacyProps) {
           </div>
         </section>
 
-        <section className="py-16 relative z-10 bg-background/80 backdrop-blur-sm">
+        <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
               <Card className="p-8 bg-card text-card-foreground shadow-lg">
