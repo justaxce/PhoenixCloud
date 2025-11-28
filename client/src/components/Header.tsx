@@ -40,7 +40,10 @@ export function Header({ categories = [] }: HeaderProps) {
 
   const navLinks = [
     { href: "/", label: "Home" },
+    { href: "/plans", label: "Plans" },
     { href: "/support", label: "Support" },
+    { href: "/terms", label: "Terms" },
+    { href: "/privacy", label: "Policy" },
   ];
 
   const isActive = (path: string) => location === path;
@@ -57,70 +60,13 @@ export function Header({ categories = [] }: HeaderProps) {
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href}>
               <Button
-                variant={isActive(link.href) ? "secondary" : "ghost"}
+                variant={isActive(link.href) || (link.label === "Plans" && location.startsWith("/plans")) ? "secondary" : "ghost"}
                 data-testid={`link-nav-${link.label.toLowerCase()}`}
               >
                 {link.label}
               </Button>
             </Link>
           ))}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant={location.startsWith("/plans") ? "secondary" : "ghost"}
-                data-testid="button-plans-dropdown"
-              >
-                Plans
-                <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <Link href="/plans">
-                <DropdownMenuItem data-testid="link-all-plans">
-                  All Plans
-                </DropdownMenuItem>
-              </Link>
-              {categories.map((category) => (
-                <DropdownMenuSub key={category.id}>
-                  <DropdownMenuSubTrigger data-testid={`menu-category-${category.slug}`}>
-                    {category.name}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-48">
-                    <Link href={`/plans/${category.slug}`}>
-                      <DropdownMenuItem data-testid={`link-category-all-${category.slug}`}>
-                        All {category.name}
-                      </DropdownMenuItem>
-                    </Link>
-                    {category.subcategories.map((sub) => (
-                      <Link key={sub.id} href={`/plans/${category.slug}/${sub.slug}`}>
-                        <DropdownMenuItem data-testid={`link-subcategory-${sub.slug}`}>
-                          {sub.name}
-                        </DropdownMenuItem>
-                      </Link>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Link href="/terms">
-            <Button
-              variant={isActive("/terms") ? "secondary" : "ghost"}
-              data-testid="link-nav-terms"
-            >
-              Terms
-            </Button>
-          </Link>
-          <Link href="/privacy">
-            <Button
-              variant={isActive("/privacy") ? "secondary" : "ghost"}
-              data-testid="link-nav-privacy"
-            >
-              Privacy
-            </Button>
-          </Link>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -168,7 +114,7 @@ export function Header({ categories = [] }: HeaderProps) {
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <Button
-                  variant={isActive(link.href) ? "secondary" : "ghost"}
+                  variant={isActive(link.href) || (link.label === "Plans" && location.startsWith("/plans")) ? "secondary" : "ghost"}
                   className="w-full justify-start"
                   onClick={() => setMobileMenuOpen(false)}
                   data-testid={`link-mobile-${link.label.toLowerCase()}`}
@@ -177,36 +123,6 @@ export function Header({ categories = [] }: HeaderProps) {
                 </Button>
               </Link>
             ))}
-            <Link href="/plans">
-              <Button
-                variant={location.startsWith("/plans") ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setMobileMenuOpen(false)}
-                data-testid="link-mobile-plans"
-              >
-                Plans
-              </Button>
-            </Link>
-            <Link href="/terms">
-              <Button
-                variant={isActive("/terms") ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setMobileMenuOpen(false)}
-                data-testid="link-mobile-terms"
-              >
-                Terms
-              </Button>
-            </Link>
-            <Link href="/privacy">
-              <Button
-                variant={isActive("/privacy") ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setMobileMenuOpen(false)}
-                data-testid="link-mobile-privacy"
-              >
-                Privacy
-              </Button>
-            </Link>
             <Link href="/plans">
               <Button
                 className="w-full mt-2"
