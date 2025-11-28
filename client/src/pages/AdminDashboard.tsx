@@ -15,8 +15,13 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Settings, Flame, LogOut, Plus, Trash2 } from "lucide-react";
+import { Settings, Flame, LogOut, Plus, Trash2, Edit2 } from "lucide-react";
 import type { Category, Subcategory, Plan, Settings as SettingsType } from "@shared/schema";
+import {
+  AddCategoryDialog,
+  AddSubcategoryDialog,
+  AddPlanDialog,
+} from "@/components/AdminDialogs";
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -31,6 +36,11 @@ export default function AdminDashboard() {
   const [discordLink, setDiscordLink] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
+
+  // Dialog states
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showAddSubcategory, setShowAddSubcategory] = useState(false);
+  const [showAddPlan, setShowAddPlan] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -55,6 +65,7 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error("Failed to load data:", error);
+      toast({ title: "Error loading data", variant: "destructive" });
     }
   };
 
@@ -178,7 +189,7 @@ export default function AdminDashboard() {
                   {categories.map((cat) => (
                     <div
                       key={cat.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
+                      className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
                       data-testid={`item-category-${cat.id}`}
                     >
                       <div>
@@ -196,7 +207,13 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-                <Button variant="outline" className="w-full" size="sm" data-testid="button-add-category">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  onClick={() => setShowAddCategory(true)}
+                  data-testid="button-add-category"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Category
                 </Button>
@@ -215,7 +232,7 @@ export default function AdminDashboard() {
                     return (
                       <div
                         key={sub.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
+                        className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
                         data-testid={`item-subcategory-${sub.id}`}
                       >
                         <div>
@@ -236,7 +253,13 @@ export default function AdminDashboard() {
                     );
                   })}
                 </div>
-                <Button variant="outline" className="w-full" size="sm" data-testid="button-add-subcategory">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  onClick={() => setShowAddSubcategory(true)}
+                  data-testid="button-add-subcategory"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Subcategory
                 </Button>
@@ -256,10 +279,10 @@ export default function AdminDashboard() {
                     return (
                       <div
                         key={plan.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
+                        className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
                         data-testid={`item-plan-${plan.id}`}
                       >
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium">{plan.name}</p>
                           <p className="text-sm text-muted-foreground">
                             {cat?.name} → {sub?.name}
@@ -278,7 +301,13 @@ export default function AdminDashboard() {
                     );
                   })}
                 </div>
-                <Button variant="outline" className="w-full" size="sm" data-testid="button-add-plan">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  onClick={() => setShowAddPlan(true)}
+                  data-testid="button-add-plan"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Plan
                 </Button>
@@ -288,6 +317,29 @@ export default function AdminDashboard() {
         </Tabs>
       </main>
 
+      {/* Dialogs */}
+      <AddCategoryDialog
+        open={showAddCategory}
+        onOpenChange={setShowAddCategory}
+        onSuccess={loadData}
+      />
+
+      <AddSubcategoryDialog
+        open={showAddSubcategory}
+        onOpenChange={setShowAddSubcategory}
+        categories={categories}
+        onSuccess={loadData}
+      />
+
+      <AddPlanDialog
+        open={showAddPlan}
+        onOpenChange={setShowAddPlan}
+        categories={categories}
+        subcategories={subcategories}
+        onSuccess={loadData}
+      />
+
+      {/* Delete Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogTitle>Delete Item?</AlertDialogTitle>

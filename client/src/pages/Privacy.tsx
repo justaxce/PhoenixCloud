@@ -33,96 +33,110 @@ export default function Privacy({ categories = [] }: PrivacyProps) {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl prose prose-neutral dark:prose-invert">
-              <h2>1. Introduction</h2>
+              <h2>Introduction</h2>
               <p>
-                Phoenix Cloud ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our services.
+                Welcome to PheonixCloud Hosting. We are committed to protecting your privacy.
+                This Privacy Policy explains what information we collect, how we use it, and how we keep it safe when you use our hosting services or purchase through Discord.
               </p>
 
-              <h2>2. Information We Collect</h2>
-              <h3>Personal Information</h3>
-              <p>We may collect personal information that you provide directly to us, including:</p>
+              <h2>Information We Collect</h2>
+              <h3>1. Account Information</h3>
+              <p>When you purchase hosting or request support, we may collect:</p>
               <ul>
-                <li>Name and email address</li>
-                <li>Billing and payment information</li>
-                <li>Account credentials</li>
-                <li>Contact information</li>
-                <li>Communication preferences</li>
+                <li>Your Name or Discord Username</li>
+                <li>Email address (if you choose to provide it)</li>
+                <li>Discord ID (only for account linking and support)</li>
+                <li>Payment proof (screenshots / transaction ID)</li>
+                <li>Basic server details (server name, plan, etc.)</li>
+              </ul>
+              <p>We do not store bank details, card details, or passwords.</p>
+
+              <h3>2. Usage Information</h3>
+              <p>To provide hosting services, we collect only essential technical data such as:</p>
+              <ul>
+                <li>IP address (for panel login security)</li>
+                <li>Server resource usage (CPU, RAM, Storage)</li>
+                <li>Error logs related to your hosted service</li>
+              </ul>
+              <p>This is required for server stability and support.</p>
+
+              <h2>How We Use Your Information</h2>
+              <h3>1. Service Delivery</h3>
+              <p>We use your information to:</p>
+              <ul>
+                <li>Create and manage your hosting service</li>
+                <li>Provide customer support</li>
+                <li>Fix issues and maintain server performance</li>
               </ul>
 
-              <h3>Automatically Collected Information</h3>
-              <p>When you use our services, we automatically collect:</p>
+              <h3>2. Communication</h3>
+              <p>We may contact you on Discord or email for:</p>
               <ul>
-                <li>IP addresses and device information</li>
-                <li>Browser type and version</li>
-                <li>Usage data and analytics</li>
-                <li>Server logs and performance data</li>
+                <li>Service updates</li>
+                <li>Payment confirmation</li>
+                <li>Support responses</li>
+                <li>Important announcements</li>
               </ul>
 
-              <h2>3. How We Use Your Information</h2>
-              <p>We use the collected information for:</p>
+              <h3>3. Payment Verification</h3>
+              <p>
+                Since purchases happen through Discord, payment screenshots or transaction IDs are used only to verify your order.
+                We do not store your bank or UPI data.
+              </p>
+
+              <h2>Information Sharing</h2>
+              <h3>1. Service Providers</h3>
+              <p>We may share limited information with:</p>
               <ul>
-                <li>Providing and maintaining our services</li>
-                <li>Processing payments and transactions</li>
-                <li>Sending service-related communications</li>
-                <li>Improving our services and user experience</li>
-                <li>Detecting and preventing fraud or abuse</li>
-                <li>Complying with legal obligations</li>
+                <li>Datacenter providers (for VPS/Minecraft nodes)</li>
+                <li>DDoS protection providers</li>
+                <li>Panel management systems</li>
               </ul>
+              <p>Only the required technical information is shared — nothing more.</p>
 
-              <h2>4. Data Sharing and Disclosure</h2>
-              <p>We may share your information with:</p>
+              <h3>2. Legal Requirements</h3>
+              <p>
+                We may disclose information only if required by law or to prevent abuse, fraud, or attacks on our servers.
+                We never sell or trade your data.
+              </p>
+
+              <h2>Data Security</h2>
+              <p>We take reasonable steps to secure your data using:</p>
               <ul>
-                <li>Service providers who assist in our operations</li>
-                <li>Payment processors for transaction handling</li>
-                <li>Law enforcement when required by law</li>
-                <li>Business partners with your consent</li>
+                <li>Secure panel systems</li>
+                <li>Limited staff access</li>
+                <li>Authentication protection</li>
+                <li>Server-side security measures</li>
               </ul>
-              <p>We do not sell your personal information to third parties.</p>
+              <p>However, no online service is 100% secure.</p>
 
-              <h2>5. Data Security</h2>
-              <p>
-                We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure.
-              </p>
-
-              <h2>6. Data Retention</h2>
-              <p>
-                We retain your personal information for as long as necessary to provide our services and fulfill the purposes outlined in this policy, unless a longer retention period is required by law.
-              </p>
-
-              <h2>7. Your Rights</h2>
-              <p>Depending on your location, you may have the right to:</p>
+              <h2>Your Rights</h2>
+              <p>You may request at any time:</p>
               <ul>
-                <li>Access your personal information</li>
-                <li>Correct inaccurate data</li>
-                <li>Request deletion of your data</li>
-                <li>Object to processing of your data</li>
-                <li>Request data portability</li>
-                <li>Withdraw consent at any time</li>
+                <li>To see what data we have</li>
+                <li>To update incorrect information</li>
+                <li>To delete your account and data</li>
               </ul>
+              <p>Just open a ticket on our Discord server.</p>
 
-              <h2>8. Cookies and Tracking</h2>
+              <h2>Children's Privacy</h2>
               <p>
-                We use cookies and similar tracking technologies to collect information about your browsing activities. You can control cookie preferences through your browser settings.
+                Our services are not intended for users under 13.
+                If a minor's data is discovered, we will delete it immediately.
               </p>
 
-              <h2>9. Children's Privacy</h2>
+              <h2>Changes to This Policy</h2>
               <p>
-                Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information from children.
+                We may update this Privacy Policy.
+                If we make major changes, we will notify users on our Discord server or website.
               </p>
 
-              <h2>10. International Data Transfers</h2>
+              <h2>Contact Us</h2>
               <p>
-                Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place for such transfers.
+                If you have questions or requests regarding this Privacy Policy:
               </p>
-
-              <h2>11. Changes to This Policy</h2>
               <p>
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.
-              </p>
-
-              <h2>12. Contact Us</h2>
-              <p>
-                If you have questions about this Privacy Policy, please contact us through our Discord server or email at privacy@phoenixcloud.com.
+                📧 pheonixcloud.offical@gmail.com
               </p>
             </div>
           </div>

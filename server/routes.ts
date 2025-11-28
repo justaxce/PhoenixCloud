@@ -22,7 +22,7 @@ export async function registerRoutes(
     try {
       const { name, slug } = categorySchema.parse(req.body);
       const category = await storage.createCategory(name, slug);
-      res.json(category);
+      res.status(201).json(category);
     } catch (error) {
       res.status(400).json({ error: "Invalid input" });
     }
@@ -43,7 +43,7 @@ export async function registerRoutes(
     try {
       const { name, slug, categoryId } = subcategorySchema.parse(req.body);
       const subcategory = await storage.createSubcategory(name, slug, categoryId);
-      res.json(subcategory);
+      res.status(201).json(subcategory);
     } catch (error) {
       res.status(400).json({ error: "Invalid input" });
     }
@@ -64,7 +64,7 @@ export async function registerRoutes(
     try {
       const plan = planSchema.parse(req.body);
       const created = await storage.createPlan(plan);
-      res.json(created);
+      res.status(201).json(created);
     } catch (error) {
       res.status(400).json({ error: "Invalid input" });
     }
