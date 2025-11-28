@@ -21,6 +21,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Category } from "@shared/schema";
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,6 +41,11 @@ export function AddCategoryDialog({ open, onOpenChange, onSuccess }: AddCategory
   const [slug, setSlug] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    setSlug(slugify(value));
+  };
 
   const handleSubmit = async () => {
     if (!name || !slug) {
@@ -73,20 +87,21 @@ export function AddCategoryDialog({ open, onOpenChange, onSuccess }: AddCategory
           <div>
             <label className="text-sm font-medium">Category Name</label>
             <Input
-              placeholder="e.g., VPS Hosting"
+              placeholder="e.g., Premium Plans"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               data-testid="input-category-name"
             />
           </div>
           <div>
             <label className="text-sm font-medium">URL Slug</label>
             <Input
-              placeholder="e.g., vps"
+              placeholder="e.g., premium-plans"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               data-testid="input-category-slug"
             />
+            <p className="text-xs text-muted-foreground mt-1">Auto-generated from name, but you can edit it</p>
           </div>
         </div>
         <DialogFooter>
@@ -120,6 +135,11 @@ export function AddSubcategoryDialog({
   const [categoryId, setCategoryId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    setSlug(slugify(value));
+  };
 
   const handleSubmit = async () => {
     if (!name || !slug || !categoryId) {
@@ -179,7 +199,7 @@ export function AddSubcategoryDialog({
             <Input
               placeholder="e.g., Linux VPS"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               data-testid="input-subcategory-name"
             />
           </div>
@@ -191,6 +211,7 @@ export function AddSubcategoryDialog({
               onChange={(e) => setSlug(e.target.value)}
               data-testid="input-subcategory-slug"
             />
+            <p className="text-xs text-muted-foreground mt-1">Auto-generated from name, but you can edit it</p>
           </div>
         </div>
         <DialogFooter>
@@ -223,7 +244,8 @@ export function AddPlanDialog({
 }: AddPlanDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
+  const [priceUsd, setPriceUsd] = useState("");
+  const [priceInr, setPriceInr] = useState("");
   const [period, setPeriod] = useState("month");
   const [categoryId, setCategoryId] = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
@@ -237,7 +259,7 @@ export function AddPlanDialog({
     : [];
 
   const handleSubmit = async () => {
-    if (!name || !description || !price || !categoryId || !subcategoryId || !features) {
+    if (!name || !description || !priceUsd || !priceInr || !categoryId || !subcategoryId || !features) {
       toast({ title: "Please fill all fields", variant: "destructive" });
       return;
     }
@@ -250,7 +272,8 @@ export function AddPlanDialog({
         body: JSON.stringify({
           name,
           description,
-          price,
+          priceUsd,
+          priceInr,
           period,
           features: features.split("\n").filter((f) => f.trim()),
           categoryId,
@@ -263,7 +286,8 @@ export function AddPlanDialog({
         toast({ title: "Plan created successfully" });
         setName("");
         setDescription("");
-        setPrice("");
+        setPriceUsd("");
+        setPriceInr("");
         setPeriod("month");
         setCategoryId("");
         setSubcategoryId("");
@@ -342,26 +366,36 @@ export function AddPlanDialog({
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-sm font-medium">Price</label>
+              <label className="text-sm font-medium">Price (USD)</label>
               <Input
-                placeholder="e.g., $9.99"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                data-testid="input-plan-price"
+                placeholder="e.g., 9.99"
+                value={priceUsd}
+                onChange={(e) => setPriceUsd(e.target.value)}
+                data-testid="input-plan-price-usd"
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Period</label>
-              <Select value={period} onValueChange={setPeriod}>
-                <SelectTrigger data-testid="select-plan-period">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="month">Month</SelectItem>
-                  <SelectItem value="year">Year</SelectItem>
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium">Price (INR)</label>
+              <Input
+                placeholder="e.g., 849"
+                value={priceInr}
+                onChange={(e) => setPriceInr(e.target.value)}
+                data-testid="input-plan-price-inr"
+              />
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Period</label>
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger data-testid="select-plan-period">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month">Month</SelectItem>
+                <SelectItem value="year">Year</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

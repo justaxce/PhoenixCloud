@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { CurrencyProvider } from "@/components/CurrencyContext";
 import { AuthProvider, useAuth } from "@/components/AuthContext";
 import NotFound from "@/pages/not-found";
 
@@ -53,7 +54,8 @@ const mockPlans = [
     id: "plan-1",
     name: "Starter VPS",
     description: "Perfect for small projects",
-    price: "$9.99",
+    priceUsd: "9.99",
+    priceInr: "849",
     period: "month",
     features: ["2 vCPU Cores", "4 GB RAM", "50 GB NVMe SSD", "1 TB Bandwidth", "DDoS Protection"],
     popular: true,
@@ -64,7 +66,8 @@ const mockPlans = [
     id: "plan-2",
     name: "Pro VPS",
     description: "For growing applications",
-    price: "$29.99",
+    priceUsd: "29.99",
+    priceInr: "2499",
     period: "month",
     features: ["8 vCPU Cores", "16 GB RAM", "200 GB NVMe SSD", "10 TB Bandwidth", "DDoS Protection", "Priority Support"],
     categoryId: "1",
@@ -74,7 +77,8 @@ const mockPlans = [
     id: "plan-3",
     name: "Enterprise VPS",
     description: "For demanding workloads",
-    price: "$99.99",
+    priceUsd: "99.99",
+    priceInr: "8399",
     period: "month",
     features: ["16 vCPU Cores", "64 GB RAM", "1 TB NVMe SSD", "100 TB Bandwidth", "DDoS Protection", "Dedicated Support", "Custom Configuration"],
     categoryId: "1",
@@ -113,12 +117,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </AuthProvider>
+        <CurrencyProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </AuthProvider>
+        </CurrencyProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

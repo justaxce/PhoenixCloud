@@ -39,12 +39,14 @@ interface PlansProps {
   categories?: Category[];
   plans?: PlanWithCategory[];
   discordLink?: string;
+  redirectLink?: string;
 }
 
 export default function Plans({ 
   categories = [], 
   plans = [],
-  discordLink = "#"
+  discordLink = "#",
+  redirectLink = "#"
 }: PlansProps) {
   const params = useParams<{ categorySlug?: string; subcategorySlug?: string }>();
   const [filteredPlans, setFilteredPlans] = useState<PlanWithCategory[]>(plans);

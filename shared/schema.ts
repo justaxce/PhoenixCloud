@@ -17,7 +17,8 @@ export interface Plan {
   id: string;
   name: string;
   description: string;
-  price: string;
+  priceUsd: string;
+  priceInr: string;
   period: string;
   features: string[];
   popular?: boolean;
@@ -26,7 +27,9 @@ export interface Plan {
 }
 
 export interface Settings {
-  discordLink: string;
+  currency: "usd" | "inr";
+  supportLink: string;
+  redirectLink: string;
 }
 
 export interface AdminUser {
@@ -49,7 +52,8 @@ export const subcategorySchema = z.object({
 export const planSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  price: z.string().min(1),
+  priceUsd: z.string().min(1),
+  priceInr: z.string().min(1),
   period: z.string().min(1),
   features: z.array(z.string()),
   popular: z.boolean().optional(),
@@ -58,7 +62,9 @@ export const planSchema = z.object({
 });
 
 export const settingsSchema = z.object({
-  discordLink: z.string().url(),
+  currency: z.enum(["usd", "inr"]),
+  supportLink: z.string().url(),
+  redirectLink: z.string().url(),
 });
 
 export type InsertCategory = z.infer<typeof categorySchema>;

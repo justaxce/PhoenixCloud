@@ -35,7 +35,8 @@ export default function AdminDashboard() {
   const [adminUsers, setAdminUsers] = useState<Array<{ id: string; username: string }>>([]);
   const [settings, setSettings] = useState<SettingsType>({ discordLink: "" });
 
-  const [discordLink, setDiscordLink] = useState("");
+  const [supportLink, setSupportLink] = useState("");
+  const [redirectLink, setRedirectLink] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
 
@@ -67,7 +68,8 @@ export default function AdminDashboard() {
       if (setsRes.ok) {
         const s = await setsRes.json();
         setSettings(s);
-        setDiscordLink(s.discordLink);
+        setSupportLink(s.supportLink);
+        setRedirectLink(s.redirectLink);
       }
       if (usersRes.ok) setAdminUsers(await usersRes.json());
     } catch (error) {
@@ -81,7 +83,11 @@ export default function AdminDashboard() {
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ discordLink }),
+        body: JSON.stringify({ 
+          currency: "usd",
+          supportLink, 
+          redirectLink 
+        }),
       });
       if (res.ok) {
         setSettings(await res.json());
@@ -168,25 +174,40 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <label htmlFor="discord" className="text-sm font-medium">
-                    Discord Support Server Link
+                  <label htmlFor="supportLink" className="text-sm font-medium">
+                    Support Server Link
                   </label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="discord"
-                      placeholder="https://discord.gg/..."
-                      value={discordLink}
-                      onChange={(e) => setDiscordLink(e.target.value)}
-                      data-testid="input-discord-link"
-                    />
-                    <Button onClick={updateSettings} data-testid="button-save-settings">
-                      Save
-                    </Button>
-                  </div>
+                  <Input
+                    id="supportLink"
+                    placeholder="https://discord.gg/..."
+                    value={supportLink}
+                    onChange={(e) => setSupportLink(e.target.value)}
+                    data-testid="input-support-link"
+                  />
                   <p className="text-xs text-muted-foreground">
-                    This link is used for "Order Now" buttons and support channels.
+                    Used for support and help channels
                   </p>
                 </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="redirectLink" className="text-sm font-medium">
+                    Redirect Link (Order Now)
+                  </label>
+                  <Input
+                    id="redirectLink"
+                    placeholder="https://..."
+                    value={redirectLink}
+                    onChange={(e) => setRedirectLink(e.target.value)}
+                    data-testid="input-redirect-link"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Where users are redirected when they click "Order Now" on plans
+                  </p>
+                </div>
+
+                <Button onClick={updateSettings} data-testid="button-save-settings">
+                  Save Settings
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

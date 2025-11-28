@@ -73,7 +73,8 @@ export class MemStorage implements IStorage {
       id: "plan-1",
       name: "Starter VPS",
       description: "Perfect for small projects",
-      price: "$9.99",
+      priceUsd: "9.99",
+      priceInr: "849",
       period: "month",
       features: ["2 vCPU Cores", "4 GB RAM", "50 GB NVMe SSD", "1 TB Bandwidth", "DDoS Protection"],
       popular: true,
@@ -81,6 +82,13 @@ export class MemStorage implements IStorage {
       subcategoryId: "1a",
     };
     this.plans.set(starterPlan.id, starterPlan);
+
+    // Initialize settings
+    this.settings = {
+      currency: "usd",
+      supportLink: "https://discord.gg/EX6Dydyar5",
+      redirectLink: "https://discord.gg/EX6Dydyar5",
+    };
 
     // Initialize with default admin user
     const adminId = randomUUID();

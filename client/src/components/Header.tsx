@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Flame, ChevronDown } from "lucide-react";
+import { Menu, X, Flame, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
+import { useCurrency } from "./CurrencyContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,7 @@ interface HeaderProps {
 export function Header({ categories = [] }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location] = useLocation();
+  const { currency, setCurrency } = useCurrency();
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -51,7 +53,7 @@ export function Header({ categories = [] }: HeaderProps) {
           <span className="text-xl font-bold">Phoenix Cloud</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-1 mr-4">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href}>
               <Button
@@ -122,6 +124,26 @@ export function Header({ categories = [] }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 border rounded-md p-1 bg-background">
+            <Button
+              variant={currency === "usd" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setCurrency("usd")}
+              data-testid="button-currency-usd"
+              className="h-7"
+            >
+              $
+            </Button>
+            <Button
+              variant={currency === "inr" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setCurrency("inr")}
+              data-testid="button-currency-inr"
+              className="h-7"
+            >
+              ₹
+            </Button>
+          </div>
           <ThemeToggle />
           <Link href="/plans" className="hidden md:block">
             <Button data-testid="button-get-started">Get Started</Button>

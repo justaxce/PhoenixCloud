@@ -2,12 +2,15 @@ import { Check } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useCurrency } from "./CurrencyContext";
 
 export interface Plan {
   id: string;
   name: string;
   description: string;
-  price: string;
+  priceUsd?: string;
+  priceInr?: string;
+  price?: string;
   period: string;
   features: string[];
   popular?: boolean;
@@ -19,6 +22,18 @@ interface PlanCardProps {
 }
 
 export function PlanCard({ plan, discordLink = "#" }: PlanCardProps) {
+  const { currency } = useCurrency();
+  
+  const getPrice = () => {
+    if (currency === "inr" && plan.priceInr) {
+      return `₹${plan.priceInr}`;
+    }
+    if (plan.priceUsd) {
+      return `$${plan.priceUsd}`;
+    }
+    return plan.price || "$0";
+  };
+
   const handleOrderNow = () => {
     if (discordLink && discordLink !== "#") {
       window.open(discordLink, "_blank");
@@ -45,7 +60,7 @@ export function PlanCard({ plan, discordLink = "#" }: PlanCardProps) {
       
       <CardContent className="flex-1">
         <div className="mb-6">
-          <span className="text-4xl font-bold">{plan.price}</span>
+          <span className="text-4xl font-bold">{getPrice()}</span>
           <span className="text-muted-foreground">/{plan.period}</span>
         </div>
         
