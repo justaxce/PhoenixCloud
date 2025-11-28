@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Card } from "@/components/ui/card";
 
 interface Category {
   id: string;
@@ -32,8 +33,9 @@ export default function Privacy({ categories = [] }: PrivacyProps) {
 
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-3xl prose prose-neutral dark:prose-invert">
-              <h2>Introduction</h2>
+            <div className="mx-auto max-w-3xl">
+              <Card className="p-8">
+                <h2 className="text-2xl font-bold mb-4">Introduction</h2>
               <p>
                 Welcome to PheonixCloud Hosting. We are committed to protecting your privacy.
                 This Privacy Policy explains what information we collect, how we use it, and how we keep it safe when you use our hosting services or purchase through Discord.
