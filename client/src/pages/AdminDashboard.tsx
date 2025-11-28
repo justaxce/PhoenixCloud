@@ -75,6 +75,7 @@ export default function AdminDashboard() {
   const [ctaDescription, setCtaDescription] = useState("");
   const [backgroundImageLight, setBackgroundImageLight] = useState("");
   const [backgroundImageDark, setBackgroundImageDark] = useState("");
+  const [globalBgImage, setGlobalBgImage] = useState("");
 
   // Dialog states
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -161,6 +162,7 @@ export default function AdminDashboard() {
         setCtaDescription(s.ctaDescription || "");
         setBackgroundImageLight(s.backgroundImageLight || "");
         setBackgroundImageDark(s.backgroundImageDark || "");
+        setGlobalBgImage(s.globalBgImage || "");
       }
 
       // Load admin users
@@ -214,7 +216,8 @@ export default function AdminDashboard() {
           ctaTitle,
           ctaDescription,
           backgroundImageLight,
-          backgroundImageDark
+          backgroundImageDark,
+          globalBgImage
         }),
       });
       if (res.ok) {
@@ -652,6 +655,37 @@ export default function AdminDashboard() {
                       <img
                         src={backgroundImageDark}
                         alt="Dark theme preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Global Page Background</CardTitle>
+                <CardDescription>Sets background for all pages (except nav, categories section & footer)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Background Image URL</label>
+                  <Input
+                    placeholder="https://example.com/background.jpg"
+                    value={globalBgImage}
+                    onChange={(e) => setGlobalBgImage(e.target.value)}
+                    data-testid="input-global-bg"
+                  />
+                  <p className="text-xs text-muted-foreground">Supports direct links and Discord media links. Leave empty to disable.</p>
+                  {globalBgImage && (
+                    <div className="mt-3 border rounded-lg overflow-hidden h-32 bg-muted">
+                      <img
+                        src={globalBgImage}
+                        alt="Global background preview"
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';

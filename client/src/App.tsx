@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/components/AuthContext";
 import { useWebsiteData } from "@/lib/useWebsiteData";
 import NotFound from "@/pages/not-found";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { GlobalBackground } from "@/components/GlobalBackground";
 
 // Pages
 import Home from "@/pages/Home";
@@ -37,7 +38,9 @@ function Router() {
   }
 
   return (
-    <Switch>
+    <>
+      <GlobalBackground settings={settings} />
+      <Switch>
       <Route path="/" component={() => <Home categories={categories} />} />
       <Route path="/plans" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
       <Route path="/plans/:categorySlug" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
@@ -49,6 +52,7 @@ function Router() {
       <Route path="/admin/dashboard" component={() => <ProtectedRoute component={AdminDashboard} />} />
       <Route component={NotFound} />
     </Switch>
+    </>
   );
 }
 
