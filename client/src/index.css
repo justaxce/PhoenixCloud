@@ -185,6 +185,23 @@
 
   body[data-global-bg="true"] {
     background-color: transparent;
+    background-image: none;
+  }
+
+  body[data-global-bg="true"] .bg-background {
+    background-color: transparent;
+  }
+
+  body[data-global-bg="true"] .bg-gradient-to-b {
+    background-image: none;
+  }
+
+  body[data-global-bg="true"] .bg-card {
+    background-color: hsl(var(--card) / 0.85);
+  }
+
+  body[data-global-bg="true"] footer.bg-card {
+    background-color: hsl(var(--card) / 0.9);
   }
 
   .dark body {

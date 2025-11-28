@@ -75,7 +75,6 @@ export class MySQLStorage implements IStorage {
 
   async initializeDatabase(): Promise<void> {
     if (this.initialized) return;
-    this.initialized = true;
 
     let connection;
     try {
@@ -84,7 +83,6 @@ export class MySQLStorage implements IStorage {
         new Promise((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 15000))
       ]);
     } catch (error: any) {
-      this.initialized = false;
       console.warn("Database initialization delayed, will retry:", error.message);
       return;
     }

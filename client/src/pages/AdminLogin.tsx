@@ -35,9 +35,6 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background" />
-      </div>
 
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
