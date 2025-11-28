@@ -67,30 +67,53 @@ export default function AdminDashboard() {
 
   const loadData = async () => {
     try {
-      const [catsRes, subsRes, plansRes, faqsRes, setsRes, usersRes] = await Promise.all([
-        fetch("/api/categories"),
-        fetch("/api/subcategories"),
-        fetch("/api/plans"),
-        fetch("/api/faqs"),
-        fetch("/api/settings"),
-        fetch("/api/admin/users"),
-      ]);
+      // Load categories
+      const catsRes = await fetch("/api/categories");
+      if (catsRes.ok) {
+        const cats = await catsRes.json();
+        setCategories(Array.isArray(cats) ? cats : []);
+      }
 
-      if (catsRes.ok) setCategories(await catsRes.json());
-      if (subsRes.ok) setSubcategories(await subsRes.json());
-      if (plansRes.ok) setPlans(await plansRes.json());
-      if (faqsRes.ok) setFAQs(await faqsRes.json());
+      // Load subcategories
+      const subsRes = await fetch("/api/subcategories");
+      if (subsRes.ok) {
+        const subs = await subsRes.json();
+        setSubcategories(Array.isArray(subs) ? subs : []);
+      }
+
+      // Load plans
+      const plansRes = await fetch("/api/plans");
+      if (plansRes.ok) {
+        const plans = await plansRes.json();
+        setPlans(Array.isArray(plans) ? plans : []);
+      }
+
+      // Load FAQs
+      const faqsRes = await fetch("/api/faqs");
+      if (faqsRes.ok) {
+        const faqs = await faqsRes.json();
+        setFAQs(Array.isArray(faqs) ? faqs : []);
+      }
+
+      // Load settings
+      const setsRes = await fetch("/api/settings");
       if (setsRes.ok) {
         const s = await setsRes.json();
         setSettings(s);
-        setSupportLink(s.supportLink);
-        setRedirectLink(s.redirectLink);
+        setSupportLink(s.supportLink || "");
+        setRedirectLink(s.redirectLink || "");
         setInstagramLink(s.instagramLink || "");
         setYoutubeLink(s.youtubeLink || "");
         setEmail(s.email || "");
         setDocumentationLink(s.documentationLink || "");
       }
-      if (usersRes.ok) setAdminUsers(await usersRes.json());
+
+      // Load admin users
+      const usersRes = await fetch("/api/admin/users");
+      if (usersRes.ok) {
+        const users = await usersRes.json();
+        setAdminUsers(Array.isArray(users) ? users : []);
+      }
     } catch (error) {
       console.error("Failed to load data:", error);
       toast({ title: "Error loading data", variant: "destructive" });
