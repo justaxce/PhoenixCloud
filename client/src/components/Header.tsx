@@ -4,7 +4,7 @@ import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCurrency } from "./CurrencyContext";
-import logoImage from "@assets/generated_images/phoenix_cloud_logo_transparent_background.png";
+import logoImage from "@assets/a7df999605adaa0fbe275d510814eee2_1764296940838.webp";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +48,7 @@ export function Header({ categories = [] }: HeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
         <Link href="/" className="flex items-center gap-2" data-testid="link-logo">
-          <img src={logoImage} alt="Phoenix Cloud" className="h-9 w-9" />
+          <img src={logoImage} alt="Phoenix Cloud" className="h-10 w-10 rounded-md" style={{ mixBlendMode: 'lighten' }} />
           <span className="text-xl font-bold">Phoenix Cloud</span>
         </Link>
 

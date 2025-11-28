@@ -1,0 +1,17 @@
+{
+  "categories": [],
+  "subcategories": [],
+  "plans": [],
+  "settings": {
+    "currency": "usd",
+    "supportLink": "https://discord.gg/EX6Dydyar5",
+    "redirectLink": "https://discord.gg/EX6Dydyar5"
+  },
+  "adminUsers": [
+    {
+      "id": "1e174315-385c-461c-b061-2786dd925ad9",
+      "username": "admin",
+      "passwordHash": "6015333fac951f4a79be8230ef259790dccabfe1bd12f691eb50156ce4462a23"
+    }
+  ]
+}

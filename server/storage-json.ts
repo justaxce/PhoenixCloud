@@ -53,39 +53,27 @@ export class JsonStorage implements IStorage {
     try {
       if (fs.existsSync(DATA_FILE)) {
         const content = fs.readFileSync(DATA_FILE, "utf-8");
+        console.log("Loaded data from", DATA_FILE);
         return JSON.parse(content);
       }
     } catch (error) {
       console.error("Error loading data file:", error);
     }
 
-    return this.getDefaultData();
+    console.log("Creating new data file at", DATA_FILE);
+    const defaultData = this.getDefaultData();
+    this.saveDataSync(defaultData);
+    return defaultData;
   }
 
   private getDefaultData(): StorageData {
+    const salt = "phoenix-salt";
+    const passwordHash = scryptSync("admin123", salt, 32).toString("hex");
+    
     return {
-      categories: [
-        { id: "1", name: "VPS Hosting", slug: "vps" },
-        { id: "2", name: "Dedicated Servers", slug: "dedicated" },
-      ],
-      subcategories: [
-        { id: "1a", name: "Linux VPS", slug: "linux", categoryId: "1" },
-        { id: "1b", name: "Windows VPS", slug: "windows", categoryId: "1" },
-      ],
-      plans: [
-        {
-          id: "plan-1",
-          name: "Starter VPS",
-          description: "Perfect for small projects",
-          priceUsd: "9.99",
-          priceInr: "849",
-          period: "month",
-          features: ["2 vCPU Cores", "4 GB RAM", "50 GB NVMe SSD", "1 TB Bandwidth", "DDoS Protection"],
-          popular: true,
-          categoryId: "1",
-          subcategoryId: "1a",
-        },
-      ],
+      categories: [],
+      subcategories: [],
+      plans: [],
       settings: {
         currency: "usd",
         supportLink: "https://discord.gg/EX6Dydyar5",
@@ -95,10 +83,19 @@ export class JsonStorage implements IStorage {
         {
           id: randomUUID(),
           username: "admin",
-          passwordHash: this.hashPassword("admin123"),
+          passwordHash: passwordHash,
         },
       ],
     };
+  }
+  
+  private saveDataSync(data: StorageData): void {
+    try {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+      console.log("Data saved to", DATA_FILE);
+    } catch (error) {
+      console.error("Error saving data file:", error);
+    }
   }
 
   private saveData(): void {
