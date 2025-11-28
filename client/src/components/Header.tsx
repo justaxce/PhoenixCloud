@@ -4,7 +4,6 @@ import { Menu, X, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCurrency } from "./CurrencyContext";
-import logoImage from "@assets/phoenix-logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +13,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
+
+const logoImage = "/favicon.png";
 
 interface Category {
   id: string;
