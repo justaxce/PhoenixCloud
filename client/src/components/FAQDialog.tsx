@@ -26,14 +26,14 @@ export function FAQDialog({ open, onOpenChange, onSuccess, editingFAQ }: FAQDial
   const { toast } = useToast();
 
   useEffect(() => {
-    if (editingFAQ) {
-      setQuestion(editingFAQ.question);
-      setAnswer(editingFAQ.answer);
-    } else {
+    if (open && editingFAQ) {
+      setQuestion(editingFAQ.question || "");
+      setAnswer(editingFAQ.answer || "");
+    } else if (open) {
       setQuestion("");
       setAnswer("");
     }
-  }, [editingFAQ]);
+  }, [open, editingFAQ]);
 
   const handleSubmit = async () => {
     if (!question || !answer) {

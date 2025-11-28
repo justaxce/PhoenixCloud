@@ -44,14 +44,14 @@ export function AddCategoryDialog({ open, onOpenChange, onSuccess, editingCatego
   const { toast } = useToast();
 
   useEffect(() => {
-    if (editingCategory) {
-      setName(editingCategory.name);
-      setSlug(editingCategory.slug);
-    } else {
+    if (open && editingCategory) {
+      setName(editingCategory.name || "");
+      setSlug(editingCategory.slug || "");
+    } else if (open) {
       setName("");
       setSlug("");
     }
-  }, [editingCategory]);
+  }, [open, editingCategory]);
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -154,16 +154,16 @@ export function AddSubcategoryDialog({
   const { toast } = useToast();
 
   useEffect(() => {
-    if (editingSubcategory) {
-      setName(editingSubcategory.name);
-      setSlug(editingSubcategory.slug);
-      setCategoryId(editingSubcategory.categoryId);
-    } else {
+    if (open && editingSubcategory) {
+      setName(editingSubcategory.name || "");
+      setSlug(editingSubcategory.slug || "");
+      setCategoryId(editingSubcategory.categoryId || "");
+    } else if (open) {
       setName("");
       setSlug("");
       setCategoryId("");
     }
-  }, [editingSubcategory]);
+  }, [open, editingSubcategory]);
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -290,17 +290,17 @@ export function AddPlanDialog({
   const { toast } = useToast();
 
   useEffect(() => {
-    if (editingPlan) {
-      setName(editingPlan.name);
-      setDescription(editingPlan.description);
-      setPriceUsd(editingPlan.priceUsd);
-      setPriceInr(editingPlan.priceInr);
-      setPeriod(editingPlan.period);
-      setCategoryId(editingPlan.categoryId);
-      setSubcategoryId(editingPlan.subcategoryId);
-      setFeatures(editingPlan.features?.join("\n") || "");
-      setPopular(editingPlan.popular);
-    } else {
+    if (open && editingPlan) {
+      setName(editingPlan.name || "");
+      setDescription(editingPlan.description || "");
+      setPriceUsd(String(editingPlan.priceUsd || ""));
+      setPriceInr(String(editingPlan.priceInr || ""));
+      setPeriod(editingPlan.period || "month");
+      setCategoryId(editingPlan.categoryId || "");
+      setSubcategoryId(editingPlan.subcategoryId || "");
+      setFeatures(Array.isArray(editingPlan.features) ? editingPlan.features.join("\n") : "");
+      setPopular(Boolean(editingPlan.popular));
+    } else if (open) {
       setName("");
       setDescription("");
       setPriceUsd("");
@@ -311,7 +311,7 @@ export function AddPlanDialog({
       setFeatures("");
       setPopular(false);
     }
-  }, [editingPlan]);
+  }, [open, editingPlan]);
 
   const filteredSubcategories = categoryId
     ? subcategories.filter((s) => s.categoryId === categoryId)
