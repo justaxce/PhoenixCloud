@@ -1,6 +1,6 @@
 import { type Category, type Subcategory, type Plan, type Settings, type FAQ } from "@shared/schema";
 import { randomUUID, scryptSync, timingSafeEqual } from "crypto";
-import { sql } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 
 export interface IStorage {
   getCategories(): Promise<Category[]>;
@@ -38,11 +38,14 @@ export interface IStorage {
   initializeDatabase(): Promise<void>;
 }
 
-// Use DATABASE_URL from Replit PostgreSQL
+// Create PostgreSQL pool from Replit's free DATABASE_URL
 const dbUrl = process.env.DATABASE_URL;
 if (!dbUrl) {
-  console.error("ERROR: DATABASE_URL is not set. Please ensure PostgreSQL database is provisioned.");
+  console.error("ERROR: DATABASE_URL is not set. Please ensure PostgreSQL database is provisioned in Replit.");
+  process.exit(1);
 }
+
+const pool = new Pool({ connectionString: dbUrl });
 
 export class PostgresStorage implements IStorage {
   private initialized = false;
@@ -52,34 +55,15 @@ export class PostgresStorage implements IStorage {
     return scryptSync(password, salt, 32).toString("hex");
   }
 
-  async query<T = any>(queryStr: string, params?: any[]): Promise<T[]> {
-    try {
-      const response = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: queryStr,
-          params: params || [],
-        }),
-      });
-      const data = await response.json();
-      return data.rows || [];
-    } catch (error: any) {
-      console.error("Query error:", error);
-      throw error;
-    }
-  }
-
   async initializeDatabase(): Promise<void> {
     if (this.initialized) return;
     
+    const client = await pool.connect();
     try {
-      console.log("Initializing PostgreSQL database with Replit's free database...");
+      console.log("Initializing PostgreSQL database with Replit's free lifetime database...");
       
-      // Create tables
-      const createTablesSql = `
+      // Create all tables
+      await client.query(`
         CREATE TABLE IF NOT EXISTS categories (
           id VARCHAR(36) PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
@@ -157,560 +141,426 @@ export class PostgresStorage implements IStorage {
           username VARCHAR(255) NOT NULL UNIQUE,
           passwordHash VARCHAR(255) NOT NULL
         );
-      `;
+      `);
 
-      // Check if settings exist, if not create default
-      const checkSettings = `SELECT * FROM settings WHERE id = 1;`;
-      const adminCount = `SELECT COUNT(*) as count FROM admin_users;`;
+      // Initialize default settings if not exists
+      const settingsResult = await client.query("SELECT * FROM settings WHERE id = 1");
+      if (settingsResult.rows.length === 0) {
+        await client.query(
+          "INSERT INTO settings (id, currency, supportLink, redirectLink) VALUES (1, 'usd', '', '')"
+        );
+      }
 
-      // Initialize default data if not exists
-      const defaultAdminId = randomUUID();
-      const defaultAdminHash = this.hashPassword("admin123");
+      // Initialize default admin user if not exists
+      const adminsResult = await client.query("SELECT * FROM admin_users");
+      if (adminsResult.rows.length === 0) {
+        const adminId = randomUUID();
+        const passwordHash = this.hashPassword("admin123");
+        await client.query(
+          "INSERT INTO admin_users (id, username, passwordHash) VALUES ($1, $2, $3)",
+          [adminId, "admin", passwordHash]
+        );
+        console.log("✅ Created default admin user: admin / admin123");
+      }
 
-      console.log("PostgreSQL database initialized successfully with Replit's free lifetime database!");
+      console.log("✅ PostgreSQL database initialized successfully!");
       this.initialized = true;
     } catch (error: any) {
       console.error("Database initialization error:", error.message);
-      // Don't mark as initialized on error so we can retry
+      throw error;
+    } finally {
+      client.release();
     }
   }
 
   async getCategories(): Promise<Category[]> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const categories = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "SELECT * FROM categories;" }),
-      }).then(r => r.json());
-      return categories.rows || [];
-    } catch {
-      return [];
+      const result = await client.query("SELECT * FROM categories");
+      return result.rows;
+    } finally {
+      client.release();
     }
   }
 
   async getCategory(id: string): Promise<Category | undefined> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "SELECT * FROM categories WHERE id = $1;", params: [id] }),
-      }).then(r => r.json());
-      return result.rows?.[0];
-    } catch {
-      return undefined;
+      const result = await client.query("SELECT * FROM categories WHERE id = $1", [id]);
+      return result.rows[0];
+    } finally {
+      client.release();
     }
   }
 
   async createCategory(name: string, slug: string): Promise<Category> {
     await this.initializeDatabase();
     const id = randomUUID();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          query: "INSERT INTO categories (id, name, slug) VALUES ($1, $2, $3);",
-          params: [id, name, slug]
-        }),
-      });
-    } catch (error) {
-      console.error("Create category error:", error);
+      await client.query("INSERT INTO categories (id, name, slug) VALUES ($1, $2, $3)", [id, name, slug]);
+      return { id, name, slug };
+    } finally {
+      client.release();
     }
-    return { id, name, slug };
   }
 
   async updateCategory(id: string, name: string, slug: string): Promise<Category | undefined> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "UPDATE categories SET name = $1, slug = $2 WHERE id = $3;",
-          params: [name, slug, id]
-        }),
-      });
-      return { id, name, slug };
-    } catch {
-      return undefined;
+      const result = await client.query(
+        "UPDATE categories SET name = $1, slug = $2 WHERE id = $3 RETURNING *",
+        [name, slug, id]
+      );
+      return result.rows[0];
+    } finally {
+      client.release();
     }
   }
 
   async deleteCategory(id: string): Promise<boolean> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "DELETE FROM categories WHERE id = $1;",
-          params: [id]
-        }),
-      });
-      return true;
-    } catch {
-      return false;
+      const result = await client.query("DELETE FROM categories WHERE id = $1", [id]);
+      return result.rowCount! > 0;
+    } finally {
+      client.release();
     }
   }
 
   async getSubcategories(): Promise<Subcategory[]> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "SELECT * FROM subcategories;" }),
-      }).then(r => r.json());
-      return result.rows || [];
-    } catch {
-      return [];
+      const result = await client.query("SELECT * FROM subcategories");
+      return result.rows;
+    } finally {
+      client.release();
     }
   }
 
   async getSubcategoriesByCategory(categoryId: string): Promise<Subcategory[]> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "SELECT * FROM subcategories WHERE categoryId = $1;",
-          params: [categoryId]
-        }),
-      }).then(r => r.json());
-      return result.rows || [];
-    } catch {
-      return [];
+      const result = await client.query("SELECT * FROM subcategories WHERE categoryId = $1", [categoryId]);
+      return result.rows;
+    } finally {
+      client.release();
     }
   }
 
   async createSubcategory(name: string, slug: string, categoryId: string): Promise<Subcategory> {
     await this.initializeDatabase();
     const id = randomUUID();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "INSERT INTO subcategories (id, name, slug, categoryId) VALUES ($1, $2, $3, $4);",
-          params: [id, name, slug, categoryId]
-        }),
-      });
-    } catch (error) {
-      console.error("Create subcategory error:", error);
+      await client.query(
+        "INSERT INTO subcategories (id, name, slug, categoryId) VALUES ($1, $2, $3, $4)",
+        [id, name, slug, categoryId]
+      );
+      return { id, name, slug, categoryId };
+    } finally {
+      client.release();
     }
-    return { id, name, slug, categoryId };
   }
 
   async updateSubcategory(id: string, name: string, slug: string): Promise<Subcategory | undefined> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const existing = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "SELECT categoryId FROM subcategories WHERE id = $1;",
-          params: [id]
-        }),
-      }).then(r => r.json());
-      
-      if (!existing.rows?.[0]) return undefined;
+      const existing = await client.query("SELECT categoryId FROM subcategories WHERE id = $1", [id]);
+      if (existing.rows.length === 0) return undefined;
       const categoryId = existing.rows[0].categoryId;
       
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "UPDATE subcategories SET name = $1, slug = $2 WHERE id = $3;",
-          params: [name, slug, id]
-        }),
-      });
+      await client.query("UPDATE subcategories SET name = $1, slug = $2 WHERE id = $3", [name, slug, id]);
       return { id, name, slug, categoryId };
-    } catch {
-      return undefined;
+    } finally {
+      client.release();
     }
   }
 
   async deleteSubcategory(id: string): Promise<boolean> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "DELETE FROM subcategories WHERE id = $1;",
-          params: [id]
-        }),
-      });
-      return true;
-    } catch {
-      return false;
+      const result = await client.query("DELETE FROM subcategories WHERE id = $1", [id]);
+      return result.rowCount! > 0;
+    } finally {
+      client.release();
     }
   }
 
   async getPlans(): Promise<Plan[]> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "SELECT * FROM plans;" }),
-      }).then(r => r.json());
-      return (result.rows || []).map((row: any) => ({
+      const result = await client.query("SELECT * FROM plans");
+      return result.rows.map((row: any) => ({
         ...row,
         features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
         popular: Boolean(row.popular),
       }));
-    } catch {
-      return [];
+    } finally {
+      client.release();
     }
   }
 
   async getPlansBySubcategory(subcategoryId: string): Promise<Plan[]> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "SELECT * FROM plans WHERE subcategoryId = $1;",
-          params: [subcategoryId]
-        }),
-      }).then(r => r.json());
-      return (result.rows || []).map((row: any) => ({
+      const result = await client.query("SELECT * FROM plans WHERE subcategoryId = $1", [subcategoryId]);
+      return result.rows.map((row: any) => ({
         ...row,
         features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
         popular: Boolean(row.popular),
       }));
-    } catch {
-      return [];
+    } finally {
+      client.release();
     }
   }
 
   async createPlan(plan: Omit<Plan, "id">): Promise<Plan> {
     await this.initializeDatabase();
     const id = randomUUID();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);",
-          params: [id, plan.name, plan.description, plan.priceUsd, plan.priceInr, plan.period, JSON.stringify(plan.features), plan.popular, plan.categoryId, plan.subcategoryId]
-        }),
-      });
-    } catch (error) {
-      console.error("Create plan error:", error);
+      await client.query(
+        `INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [id, plan.name, plan.description, plan.priceUsd, plan.priceInr, plan.period, 
+         JSON.stringify(plan.features), plan.popular || false, plan.categoryId, plan.subcategoryId]
+      );
+      return { ...plan, id };
+    } finally {
+      client.release();
     }
-    return { ...plan, id };
   }
 
   async updatePlan(id: string, updates: Partial<Plan>): Promise<Plan | undefined> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const existing = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "SELECT * FROM plans WHERE id = $1;",
-          params: [id]
-        }),
-      }).then(r => r.json());
-      
-      if (!existing.rows?.[0]) return undefined;
+      const existing = await client.query("SELECT * FROM plans WHERE id = $1", [id]);
+      if (existing.rows.length === 0) return undefined;
       
       const current = existing.rows[0];
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "UPDATE plans SET name = $1, description = $2, priceUsd = $3, priceInr = $4, period = $5, features = $6, popular = $7, categoryId = $8, subcategoryId = $9 WHERE id = $10;",
-          params: [updates.name || current.name, updates.description || current.description, updates.priceUsd || current.priceUsd, updates.priceInr || current.priceInr, updates.period || current.period, updates.features ? JSON.stringify(updates.features) : current.features, updates.popular !== undefined ? updates.popular : current.popular, updates.categoryId || current.categoryId, updates.subcategoryId || current.subcategoryId, id]
-        }),
-      });
+      await client.query(
+        `UPDATE plans SET name = $1, description = $2, priceUsd = $3, priceInr = $4, period = $5, 
+         features = $6, popular = $7, categoryId = $8, subcategoryId = $9 WHERE id = $10`,
+        [updates.name || current.name, updates.description || current.description, 
+         updates.priceUsd || current.priceUsd, updates.priceInr || current.priceInr, 
+         updates.period || current.period, updates.features ? JSON.stringify(updates.features) : current.features,
+         updates.popular !== undefined ? updates.popular : current.popular,
+         updates.categoryId || current.categoryId, updates.subcategoryId || current.subcategoryId, id]
+      );
       
       return { ...current, ...updates };
-    } catch {
-      return undefined;
+    } finally {
+      client.release();
     }
   }
 
   async deletePlan(id: string): Promise<boolean> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "DELETE FROM plans WHERE id = $1;",
-          params: [id]
-        }),
-      });
-      return true;
-    } catch {
-      return false;
+      const result = await client.query("DELETE FROM plans WHERE id = $1", [id]);
+      return result.rowCount! > 0;
+    } finally {
+      client.release();
     }
   }
 
   async getFAQs(): Promise<FAQ[]> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "SELECT * FROM faqs;" }),
-      }).then(r => r.json());
-      return result.rows || [];
-    } catch {
-      return [];
+      const result = await client.query("SELECT * FROM faqs");
+      return result.rows;
+    } finally {
+      client.release();
     }
   }
 
   async createFAQ(question: string, answer: string): Promise<FAQ> {
     await this.initializeDatabase();
     const id = randomUUID();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "INSERT INTO faqs (id, question, answer) VALUES ($1, $2, $3);",
-          params: [id, question, answer]
-        }),
-      });
-    } catch (error) {
-      console.error("Create FAQ error:", error);
+      await client.query("INSERT INTO faqs (id, question, answer) VALUES ($1, $2, $3)", [id, question, answer]);
+      return { id, question, answer };
+    } finally {
+      client.release();
     }
-    return { id, question, answer };
   }
 
   async updateFAQ(id: string, question: string, answer: string): Promise<FAQ | undefined> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "UPDATE faqs SET question = $1, answer = $2 WHERE id = $3;",
-          params: [question, answer, id]
-        }),
-      });
-      return { id, question, answer };
-    } catch {
-      return undefined;
+      const result = await client.query(
+        "UPDATE faqs SET question = $1, answer = $2 WHERE id = $3 RETURNING *",
+        [question, answer, id]
+      );
+      return result.rows[0];
+    } finally {
+      client.release();
     }
   }
 
   async deleteFAQ(id: string): Promise<boolean> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "DELETE FROM faqs WHERE id = $1;",
-          params: [id]
-        }),
-      });
-      return true;
-    } catch {
-      return false;
+      const result = await client.query("DELETE FROM faqs WHERE id = $1", [id]);
+      return result.rowCount! > 0;
+    } finally {
+      client.release();
     }
   }
 
   async getSettings(): Promise<Settings> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "SELECT * FROM settings WHERE id = 1;" }),
-      }).then(r => r.json());
-      
-      const row = result.rows?.[0] || {};
+      const result = await client.query("SELECT * FROM settings WHERE id = 1");
+      const row = result.rows[0] || {};
       return {
         currency: row.currency || "usd",
-        supportLink: row.supportLink || "",
-        redirectLink: row.redirectLink || "",
-        instagramLink: row.instagramLink || "",
-        youtubeLink: row.youtubeLink || "",
+        supportLink: row.supportlink || "",
+        redirectLink: row.redirectlink || "",
+        instagramLink: row.instagramlink || "",
+        youtubeLink: row.youtubelink || "",
         email: row.email || "",
-        documentationLink: row.documentationLink || "",
-        heroTitleLine1: row.heroTitleLine1 || "Cloud Hosting That",
-        heroTitleLine2: row.heroTitleLine2 || "Rises Above",
-        heroDescription: row.heroDescription || "Experience blazing-fast performance with Phoenix Cloud. 99.9% uptime guarantee, instant scaling, and 24/7 expert support.",
-        stat1Value: row.stat1Value || "99.9%",
-        stat1Label: row.stat1Label || "Uptime SLA",
-        stat2Value: row.stat2Value || "50+",
-        stat2Label: row.stat2Label || "Global Locations",
-        stat3Value: row.stat3Value || "24/7",
-        stat3Label: row.stat3Label || "Expert Support",
-        featuresSectionTitle: row.featuresSectionTitle || "Why Choose Phoenix Cloud?",
-        featuresSectionDescription: row.featuresSectionDescription || "Built for performance, reliability, and ease of use.",
-        feature1Title: row.feature1Title || "Blazing Fast",
-        feature1Description: row.feature1Description || "NVMe SSD storage and optimized infrastructure for lightning-quick load times.",
-        feature2Title: row.feature2Title || "DDoS Protection",
-        feature2Description: row.feature2Description || "Enterprise-grade protection against attacks, keeping your services online.",
-        feature3Title: row.feature3Title || "Global Network",
-        feature3Description: row.feature3Description || "Strategically located data centers for low latency worldwide.",
-        feature4Title: row.feature4Title || "Instant Scaling",
-        feature4Description: row.feature4Description || "Scale resources up or down instantly based on your needs.",
-        feature5Title: row.feature5Title || "24/7 Support",
-        feature5Description: row.feature5Description || "Expert support team available around the clock via Discord and tickets.",
-        feature6Title: row.feature6Title || "99.9% Uptime",
-        feature6Description: row.feature6Description || "Industry-leading SLA with guaranteed uptime for your peace of mind.",
-        ctaTitle: row.ctaTitle || "Ready to Rise Above?",
-        ctaDescription: row.ctaDescription || "Join thousands of satisfied customers who trust Phoenix Cloud for their hosting needs. Get started in minutes.",
-        backgroundImageLight: row.backgroundImageLight || "",
-        backgroundImageDark: row.backgroundImageDark || "",
+        documentationLink: row.documentationlink || "",
+        heroTitleLine1: row.herotitleline1 || "Cloud Hosting That",
+        heroTitleLine2: row.herotitleline2 || "Rises Above",
+        heroDescription: row.herodescription || "Experience blazing-fast performance with Phoenix Cloud.",
+        stat1Value: row.stat1value || "99.9%",
+        stat1Label: row.stat1label || "Uptime SLA",
+        stat2Value: row.stat2value || "50+",
+        stat2Label: row.stat2label || "Global Locations",
+        stat3Value: row.stat3value || "24/7",
+        stat3Label: row.stat3label || "Expert Support",
+        featuresSectionTitle: row.featuressectiontitle || "Why Choose Phoenix Cloud?",
+        featuresSectionDescription: row.featuressectiondescription || "Built for performance, reliability, and ease of use.",
+        feature1Title: row.feature1title || "Blazing Fast",
+        feature1Description: row.feature1description || "NVMe SSD storage.",
+        feature2Title: row.feature2title || "DDoS Protection",
+        feature2Description: row.feature2description || "Enterprise-grade protection.",
+        feature3Title: row.feature3title || "Global Network",
+        feature3Description: row.feature3description || "Low latency worldwide.",
+        feature4Title: row.feature4title || "Instant Scaling",
+        feature4Description: row.feature4description || "Scale on demand.",
+        feature5Title: row.feature5title || "24/7 Support",
+        feature5Description: row.feature5description || "Expert support team.",
+        feature6Title: row.feature6title || "99.9% Uptime",
+        feature6Description: row.feature6description || "Industry-leading SLA.",
+        ctaTitle: row.ctatitle || "Ready to Rise Above?",
+        ctaDescription: row.ctadescription || "Get started in minutes.",
+        backgroundImageLight: row.backgroundimagelight || "",
+        backgroundImageDark: row.backgroundimagedark || "",
       };
-    } catch {
-      return {
-        currency: "usd",
-        supportLink: "",
-        redirectLink: "",
-        instagramLink: "",
-        youtubeLink: "",
-        email: "",
-        documentationLink: "",
-        heroTitleLine1: "Cloud Hosting That",
-        heroTitleLine2: "Rises Above",
-        heroDescription: "Experience blazing-fast performance with Phoenix Cloud.",
-        stat1Value: "99.9%",
-        stat1Label: "Uptime SLA",
-        stat2Value: "50+",
-        stat2Label: "Global Locations",
-        stat3Value: "24/7",
-        stat3Label: "Expert Support",
-        featuresSectionTitle: "Why Choose Phoenix Cloud?",
-        featuresSectionDescription: "Built for performance, reliability, and ease of use.",
-        feature1Title: "Blazing Fast",
-        feature1Description: "NVMe SSD storage.",
-        feature2Title: "DDoS Protection",
-        feature2Description: "Enterprise-grade protection.",
-        feature3Title: "Global Network",
-        feature3Description: "Low latency worldwide.",
-        feature4Title: "Instant Scaling",
-        feature4Description: "Scale on demand.",
-        feature5Title: "24/7 Support",
-        feature5Description: "Expert support team.",
-        feature6Title: "99.9% Uptime",
-        feature6Description: "Industry-leading SLA.",
-        ctaTitle: "Ready to Rise Above?",
-        ctaDescription: "Get started in minutes.",
-        backgroundImageLight: "",
-        backgroundImageDark: "",
-      };
+    } finally {
+      client.release();
     }
   }
 
   async updateSettings(settings: Settings): Promise<Settings> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: `UPDATE settings SET currency = $1, supportLink = $2, redirectLink = $3, instagramLink = $4, youtubeLink = $5, email = $6, documentationLink = $7, heroTitleLine1 = $8, heroTitleLine2 = $9, heroDescription = $10, stat1Value = $11, stat1Label = $12, stat2Value = $13, stat2Label = $14, stat3Value = $15, stat3Label = $16, featuresSectionTitle = $17, featuresSectionDescription = $18, feature1Title = $19, feature1Description = $20, feature2Title = $21, feature2Description = $22, feature3Title = $23, feature3Description = $24, feature4Title = $25, feature4Description = $26, feature5Title = $27, feature5Description = $28, feature6Title = $29, feature6Description = $30, ctaTitle = $31, ctaDescription = $32, backgroundImageLight = $33, backgroundImageDark = $34 WHERE id = 1;`,
-          params: [settings.currency, settings.supportLink, settings.redirectLink, settings.instagramLink, settings.youtubeLink, settings.email, settings.documentationLink, settings.heroTitleLine1, settings.heroTitleLine2, settings.heroDescription, settings.stat1Value, settings.stat1Label, settings.stat2Value, settings.stat2Label, settings.stat3Value, settings.stat3Label, settings.featuresSectionTitle, settings.featuresSectionDescription, settings.feature1Title, settings.feature1Description, settings.feature2Title, settings.feature2Description, settings.feature3Title, settings.feature3Description, settings.feature4Title, settings.feature4Description, settings.feature5Title, settings.feature5Description, settings.feature6Title, settings.feature6Description, settings.ctaTitle, settings.ctaDescription, settings.backgroundImageLight, settings.backgroundImageDark]
-        }),
-      });
-    } catch (error) {
-      console.error("Update settings error:", error);
+      await client.query(
+        `UPDATE settings SET currency = $1, supportLink = $2, redirectLink = $3, instagramLink = $4, 
+         youtubeLink = $5, email = $6, documentationLink = $7, heroTitleLine1 = $8, heroTitleLine2 = $9, 
+         heroDescription = $10, stat1Value = $11, stat1Label = $12, stat2Value = $13, stat2Label = $14, 
+         stat3Value = $15, stat3Label = $16, featuresSectionTitle = $17, featuresSectionDescription = $18, 
+         feature1Title = $19, feature1Description = $20, feature2Title = $21, feature2Description = $22, 
+         feature3Title = $23, feature3Description = $24, feature4Title = $25, feature4Description = $26, 
+         feature5Title = $27, feature5Description = $28, feature6Title = $29, feature6Description = $30, 
+         ctaTitle = $31, ctaDescription = $32, backgroundImageLight = $33, backgroundImageDark = $34 
+         WHERE id = 1`,
+        [settings.currency, settings.supportLink, settings.redirectLink, settings.instagramLink, 
+         settings.youtubeLink, settings.email, settings.documentationLink, settings.heroTitleLine1, 
+         settings.heroTitleLine2, settings.heroDescription, settings.stat1Value, settings.stat1Label, 
+         settings.stat2Value, settings.stat2Label, settings.stat3Value, settings.stat3Label, 
+         settings.featuresSectionTitle, settings.featuresSectionDescription, settings.feature1Title, 
+         settings.feature1Description, settings.feature2Title, settings.feature2Description, 
+         settings.feature3Title, settings.feature3Description, settings.feature4Title, 
+         settings.feature4Description, settings.feature5Title, settings.feature5Description, 
+         settings.feature6Title, settings.feature6Description, settings.ctaTitle, 
+         settings.ctaDescription, settings.backgroundImageLight, settings.backgroundImageDark]
+      );
+    } finally {
+      client.release();
     }
     return settings;
   }
 
   async getAdminUsers(): Promise<any[]> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "SELECT id, username FROM admin_users;" }),
-      }).then(r => r.json());
-      return result.rows || [];
-    } catch {
-      return [];
+      const result = await client.query("SELECT id, username FROM admin_users");
+      return result.rows;
+    } finally {
+      client.release();
     }
   }
 
   async createAdminUser(username: string, passwordHash: string): Promise<any> {
     await this.initializeDatabase();
     const id = randomUUID();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "INSERT INTO admin_users (id, username, passwordHash) VALUES ($1, $2, $3);",
-          params: [id, username, passwordHash]
-        }),
-      });
-    } catch (error) {
-      console.error("Create admin user error:", error);
+      await client.query(
+        "INSERT INTO admin_users (id, username, passwordHash) VALUES ($1, $2, $3)",
+        [id, username, passwordHash]
+      );
+      return { id, username };
+    } finally {
+      client.release();
     }
-    return { id, username };
   }
 
   async updateAdminUser(id: string, passwordHash: string): Promise<any | undefined> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "UPDATE admin_users SET passwordHash = $1 WHERE id = $2;",
-          params: [passwordHash, id]
-        }),
-      });
-      
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "SELECT id, username FROM admin_users WHERE id = $1;",
-          params: [id]
-        }),
-      }).then(r => r.json());
-      return result.rows?.[0];
-    } catch {
-      return undefined;
+      await client.query("UPDATE admin_users SET passwordHash = $1 WHERE id = $2", [passwordHash, id]);
+      const result = await client.query("SELECT id, username FROM admin_users WHERE id = $1", [id]);
+      return result.rows[0];
+    } finally {
+      client.release();
     }
   }
 
   async deleteAdminUser(id: string): Promise<boolean> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "DELETE FROM admin_users WHERE id = $1;",
-          params: [id]
-        }),
-      });
-      return true;
-    } catch {
-      return false;
+      const result = await client.query("DELETE FROM admin_users WHERE id = $1", [id]);
+      return result.rowCount! > 0;
+    } finally {
+      client.release();
     }
   }
 
   async verifyAdminUser(username: string, password: string): Promise<boolean> {
     await this.initializeDatabase();
+    const client = await pool.connect();
     try {
-      const result = await fetch(`${dbUrl}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: "SELECT passwordHash FROM admin_users WHERE username = $1;",
-          params: [username]
-        }),
-      }).then(r => r.json());
-      
-      if (!result.rows?.[0]) return false;
+      const result = await client.query(
+        "SELECT passwordHash FROM admin_users WHERE username = $1",
+        [username]
+      );
+      if (result.rows.length === 0) return false;
       
       const storedHash = result.rows[0].passwordHash;
       const passwordHash = this.hashPassword(password);
@@ -722,8 +572,8 @@ export class PostgresStorage implements IStorage {
       } catch {
         return false;
       }
-    } catch {
-      return false;
+    } finally {
+      client.release();
     }
   }
 }
