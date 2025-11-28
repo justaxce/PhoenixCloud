@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./storage-json";
 import { categorySchema, subcategorySchema, planSchema, settingsSchema } from "@shared/schema";
 
 export async function registerRoutes(
