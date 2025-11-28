@@ -30,6 +30,8 @@ export interface Settings {
   currency: "usd" | "inr";
   supportLink: string;
   redirectLink: string;
+  instagramLink?: string;
+  youtubeLink?: string;
 }
 
 export interface AdminUser {
@@ -65,6 +67,8 @@ export const settingsSchema = z.object({
   currency: z.enum(["usd", "inr"]),
   supportLink: z.string().url(),
   redirectLink: z.string().url(),
+  instagramLink: z.string().url().optional(),
+  youtubeLink: z.string().url().optional(),
 });
 
 export type InsertCategory = z.infer<typeof categorySchema>;

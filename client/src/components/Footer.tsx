@@ -1,9 +1,26 @@
 import { Link } from "wouter";
-import { Flame } from "lucide-react";
-import { SiDiscord, SiGithub, SiX } from "react-icons/si";
+import { SiDiscord, SiInstagram, SiYoutube } from "react-icons/si";
+import { useState, useEffect } from "react";
+import type { Settings } from "@shared/schema";
+import logoImage from "@assets/a7df999605adaa0fbe275d510814eee2_1764296940838.webp";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [settings, setSettings] = useState<Settings>({ currency: "usd", supportLink: "", redirectLink: "" });
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          setSettings(await res.json());
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   const footerLinks = {
     product: [
@@ -17,8 +34,8 @@ export function Footer() {
     ],
     social: [
       { label: "Discord", href: "#", icon: SiDiscord },
-      { label: "GitHub", href: "#", icon: SiGithub },
-      { label: "Twitter", href: "#", icon: SiX },
+      { label: "Instagram", href: settings.instagramLink || "#", icon: SiInstagram },
+      { label: "YouTube", href: settings.youtubeLink || "#", icon: SiYoutube },
     ],
   };
 
@@ -28,9 +45,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2" data-testid="link-footer-logo">
-              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary">
-                <Flame className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logoImage} alt="Phoenix Cloud" className="h-9 w-9 rounded" />
               <span className="text-xl font-bold">Phoenix Cloud</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">

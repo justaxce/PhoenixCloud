@@ -37,6 +37,8 @@ export default function AdminDashboard() {
 
   const [supportLink, setSupportLink] = useState("");
   const [redirectLink, setRedirectLink] = useState("");
+  const [instagramLink, setInstagramLink] = useState("");
+  const [youtubeLink, setYoutubeLink] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null);
 
@@ -70,6 +72,8 @@ export default function AdminDashboard() {
         setSettings(s);
         setSupportLink(s.supportLink);
         setRedirectLink(s.redirectLink);
+        setInstagramLink(s.instagramLink || "");
+        setYoutubeLink(s.youtubeLink || "");
       }
       if (usersRes.ok) setAdminUsers(await usersRes.json());
     } catch (error) {
@@ -86,7 +90,9 @@ export default function AdminDashboard() {
         body: JSON.stringify({ 
           currency: "usd",
           supportLink, 
-          redirectLink 
+          redirectLink,
+          instagramLink,
+          youtubeLink
         }),
       });
       if (res.ok) {
@@ -211,6 +217,38 @@ export default function AdminDashboard() {
                   />
                   <p className="text-xs text-muted-foreground">
                     Where users are redirected when they click "Order Now" on plans
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="instagramLink" className="text-sm font-medium">
+                    Instagram Link
+                  </label>
+                  <Input
+                    id="instagramLink"
+                    placeholder="https://instagram.com/..."
+                    value={instagramLink}
+                    onChange={(e) => setInstagramLink(e.target.value)}
+                    data-testid="input-instagram-link"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Your Instagram profile URL
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="youtubeLink" className="text-sm font-medium">
+                    YouTube Link
+                  </label>
+                  <Input
+                    id="youtubeLink"
+                    placeholder="https://youtube.com/..."
+                    value={youtubeLink}
+                    onChange={(e) => setYoutubeLink(e.target.value)}
+                    data-testid="input-youtube-link"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Your YouTube channel URL
                   </p>
                 </div>
 
