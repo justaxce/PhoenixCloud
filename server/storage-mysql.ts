@@ -119,9 +119,72 @@ export class MySQLStorage implements IStorage {
           instagramLink VARCHAR(500),
           youtubeLink VARCHAR(500),
           email VARCHAR(255),
-          documentationLink VARCHAR(500)
+          documentationLink VARCHAR(500),
+          heroTitleLine1 VARCHAR(255) DEFAULT 'Cloud Hosting That',
+          heroTitleLine2 VARCHAR(255) DEFAULT 'Rises Above',
+          heroDescription TEXT,
+          stat1Value VARCHAR(50) DEFAULT '99.9%',
+          stat1Label VARCHAR(100) DEFAULT 'Uptime SLA',
+          stat2Value VARCHAR(50) DEFAULT '50+',
+          stat2Label VARCHAR(100) DEFAULT 'Global Locations',
+          stat3Value VARCHAR(50) DEFAULT '24/7',
+          stat3Label VARCHAR(100) DEFAULT 'Expert Support',
+          featuresSectionTitle VARCHAR(255) DEFAULT 'Why Choose Phoenix Cloud?',
+          featuresSectionDescription TEXT,
+          feature1Title VARCHAR(255) DEFAULT 'Blazing Fast',
+          feature1Description TEXT,
+          feature2Title VARCHAR(255) DEFAULT 'DDoS Protection',
+          feature2Description TEXT,
+          feature3Title VARCHAR(255) DEFAULT 'Global Network',
+          feature3Description TEXT,
+          feature4Title VARCHAR(255) DEFAULT 'Instant Scaling',
+          feature4Description TEXT,
+          feature5Title VARCHAR(255) DEFAULT '24/7 Support',
+          feature5Description TEXT,
+          feature6Title VARCHAR(255) DEFAULT '99.9% Uptime',
+          feature6Description TEXT,
+          ctaTitle VARCHAR(255) DEFAULT 'Ready to Rise Above?',
+          ctaDescription TEXT
         )
       `);
+
+      const columnsToAdd = [
+        "heroTitleLine1 VARCHAR(255) DEFAULT 'Cloud Hosting That'",
+        "heroTitleLine2 VARCHAR(255) DEFAULT 'Rises Above'",
+        "heroDescription TEXT",
+        "stat1Value VARCHAR(50) DEFAULT '99.9%'",
+        "stat1Label VARCHAR(100) DEFAULT 'Uptime SLA'",
+        "stat2Value VARCHAR(50) DEFAULT '50+'",
+        "stat2Label VARCHAR(100) DEFAULT 'Global Locations'",
+        "stat3Value VARCHAR(50) DEFAULT '24/7'",
+        "stat3Label VARCHAR(100) DEFAULT 'Expert Support'",
+        "featuresSectionTitle VARCHAR(255) DEFAULT 'Why Choose Phoenix Cloud?'",
+        "featuresSectionDescription TEXT",
+        "feature1Title VARCHAR(255) DEFAULT 'Blazing Fast'",
+        "feature1Description TEXT",
+        "feature2Title VARCHAR(255) DEFAULT 'DDoS Protection'",
+        "feature2Description TEXT",
+        "feature3Title VARCHAR(255) DEFAULT 'Global Network'",
+        "feature3Description TEXT",
+        "feature4Title VARCHAR(255) DEFAULT 'Instant Scaling'",
+        "feature4Description TEXT",
+        "feature5Title VARCHAR(255) DEFAULT '24/7 Support'",
+        "feature5Description TEXT",
+        "feature6Title VARCHAR(255) DEFAULT '99.9% Uptime'",
+        "feature6Description TEXT",
+        "ctaTitle VARCHAR(255) DEFAULT 'Ready to Rise Above?'",
+        "ctaDescription TEXT"
+      ];
+
+      for (const col of columnsToAdd) {
+        const colName = col.split(" ")[0];
+        try {
+          await connection.query(`ALTER TABLE settings ADD COLUMN ${col}`);
+        } catch (e: any) {
+          if (!e.message?.includes("Duplicate column")) {
+          }
+        }
+      }
 
       await connection.query(`
         CREATE TABLE IF NOT EXISTS admin_users (
@@ -334,6 +397,31 @@ export class MySQLStorage implements IStorage {
       youtubeLink: row.youtubeLink || "",
       email: row.email || "",
       documentationLink: row.documentationLink || "",
+      heroTitleLine1: row.heroTitleLine1 || "Cloud Hosting That",
+      heroTitleLine2: row.heroTitleLine2 || "Rises Above",
+      heroDescription: row.heroDescription || "Experience blazing-fast performance with Phoenix Cloud. 99.9% uptime guarantee, instant scaling, and 24/7 expert support.",
+      stat1Value: row.stat1Value || "99.9%",
+      stat1Label: row.stat1Label || "Uptime SLA",
+      stat2Value: row.stat2Value || "50+",
+      stat2Label: row.stat2Label || "Global Locations",
+      stat3Value: row.stat3Value || "24/7",
+      stat3Label: row.stat3Label || "Expert Support",
+      featuresSectionTitle: row.featuresSectionTitle || "Why Choose Phoenix Cloud?",
+      featuresSectionDescription: row.featuresSectionDescription || "Built for performance, reliability, and ease of use.",
+      feature1Title: row.feature1Title || "Blazing Fast",
+      feature1Description: row.feature1Description || "NVMe SSD storage and optimized infrastructure for lightning-quick load times.",
+      feature2Title: row.feature2Title || "DDoS Protection",
+      feature2Description: row.feature2Description || "Enterprise-grade protection against attacks, keeping your services online.",
+      feature3Title: row.feature3Title || "Global Network",
+      feature3Description: row.feature3Description || "Strategically located data centers for low latency worldwide.",
+      feature4Title: row.feature4Title || "Instant Scaling",
+      feature4Description: row.feature4Description || "Scale resources up or down instantly based on your needs.",
+      feature5Title: row.feature5Title || "24/7 Support",
+      feature5Description: row.feature5Description || "Expert support team available around the clock via Discord and tickets.",
+      feature6Title: row.feature6Title || "99.9% Uptime",
+      feature6Description: row.feature6Description || "Industry-leading SLA with guaranteed uptime for your peace of mind.",
+      ctaTitle: row.ctaTitle || "Ready to Rise Above?",
+      ctaDescription: row.ctaDescription || "Join thousands of satisfied customers who trust Phoenix Cloud for their hosting needs. Get started in minutes.",
     };
   }
 
@@ -341,10 +429,48 @@ export class MySQLStorage implements IStorage {
     await this.initializeDatabase();
     await pool.query(
       `UPDATE settings SET currency = ?, supportLink = ?, redirectLink = ?, 
-       instagramLink = ?, youtubeLink = ?, email = ?, documentationLink = ? WHERE id = 1`,
-      [settings.currency, settings.supportLink, settings.redirectLink,
-       settings.instagramLink || "", settings.youtubeLink || "", 
-       settings.email || "", settings.documentationLink || ""]
+       instagramLink = ?, youtubeLink = ?, email = ?, documentationLink = ?,
+       heroTitleLine1 = ?, heroTitleLine2 = ?, heroDescription = ?,
+       stat1Value = ?, stat1Label = ?, stat2Value = ?, stat2Label = ?, stat3Value = ?, stat3Label = ?,
+       featuresSectionTitle = ?, featuresSectionDescription = ?,
+       feature1Title = ?, feature1Description = ?,
+       feature2Title = ?, feature2Description = ?,
+       feature3Title = ?, feature3Description = ?,
+       feature4Title = ?, feature4Description = ?,
+       feature5Title = ?, feature5Description = ?,
+       feature6Title = ?, feature6Description = ?,
+       ctaTitle = ?, ctaDescription = ?
+       WHERE id = 1`,
+      [
+        settings.currency, settings.supportLink, settings.redirectLink,
+        settings.instagramLink || "", settings.youtubeLink || "", 
+        settings.email || "", settings.documentationLink || "",
+        settings.heroTitleLine1 || "Cloud Hosting That",
+        settings.heroTitleLine2 || "Rises Above",
+        settings.heroDescription || "",
+        settings.stat1Value || "99.9%",
+        settings.stat1Label || "Uptime SLA",
+        settings.stat2Value || "50+",
+        settings.stat2Label || "Global Locations",
+        settings.stat3Value || "24/7",
+        settings.stat3Label || "Expert Support",
+        settings.featuresSectionTitle || "Why Choose Phoenix Cloud?",
+        settings.featuresSectionDescription || "",
+        settings.feature1Title || "Blazing Fast",
+        settings.feature1Description || "",
+        settings.feature2Title || "DDoS Protection",
+        settings.feature2Description || "",
+        settings.feature3Title || "Global Network",
+        settings.feature3Description || "",
+        settings.feature4Title || "Instant Scaling",
+        settings.feature4Description || "",
+        settings.feature5Title || "24/7 Support",
+        settings.feature5Description || "",
+        settings.feature6Title || "99.9% Uptime",
+        settings.feature6Description || "",
+        settings.ctaTitle || "Ready to Rise Above?",
+        settings.ctaDescription || ""
+      ]
     );
     return settings;
   }

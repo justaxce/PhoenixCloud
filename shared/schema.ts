@@ -40,6 +40,31 @@ export interface Settings {
   youtubeLink?: string;
   email?: string;
   documentationLink?: string;
+  heroTitleLine1?: string;
+  heroTitleLine2?: string;
+  heroDescription?: string;
+  stat1Value?: string;
+  stat1Label?: string;
+  stat2Value?: string;
+  stat2Label?: string;
+  stat3Value?: string;
+  stat3Label?: string;
+  featuresSectionTitle?: string;
+  featuresSectionDescription?: string;
+  feature1Title?: string;
+  feature1Description?: string;
+  feature2Title?: string;
+  feature2Description?: string;
+  feature3Title?: string;
+  feature3Description?: string;
+  feature4Title?: string;
+  feature4Description?: string;
+  feature5Title?: string;
+  feature5Description?: string;
+  feature6Title?: string;
+  feature6Description?: string;
+  ctaTitle?: string;
+  ctaDescription?: string;
 }
 
 export interface AdminUser {
