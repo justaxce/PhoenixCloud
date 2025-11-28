@@ -312,8 +312,9 @@ export class JsonStorage implements IStorage {
 
     const passwordHash = this.hashPassword(password);
     try {
-      timingSafeEqual(Buffer.from(user.passwordHash), Buffer.from(passwordHash));
-      return true;
+      const userBuffer = Buffer.from(user.passwordHash, 'hex');
+      const passBuffer = Buffer.from(passwordHash, 'hex');
+      return timingSafeEqual(userBuffer, passBuffer);
     } catch {
       return false;
     }
