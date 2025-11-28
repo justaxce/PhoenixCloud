@@ -54,9 +54,9 @@ export function Features() {
           </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 stagger-enter">
           {features.map((feature, index) => (
-            <Card key={index} className="hover-elevate" data-testid={`card-feature-${index}`}>
+            <Card key={index} className="hover-elevate card-enter" data-testid={`card-feature-${index}`}>
               <CardContent className="p-6">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                   <feature.icon className="h-6 w-6 text-primary" />

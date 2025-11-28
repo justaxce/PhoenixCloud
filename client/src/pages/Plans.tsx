@@ -161,10 +161,10 @@ export default function Plans({
           </div>
         </section>
 
-        <section className="py-16">
+        <section className="py-16 page-enter">
           <div className="container mx-auto px-4">
             {filteredPlans.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 stagger-enter">
                 {filteredPlans.map((plan) => (
                   <PlanCard key={plan.id} plan={plan} redirectLink={redirectLink} />
                 ))}

@@ -8,6 +8,7 @@ import { CurrencyProvider } from "@/components/CurrencyContext";
 import { AuthProvider, useAuth } from "@/components/AuthContext";
 import { useWebsiteData } from "@/lib/useWebsiteData";
 import NotFound from "@/pages/not-found";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 // Pages
 import Home from "@/pages/Home";
@@ -32,11 +33,7 @@ function Router() {
   const { categories, plans, settings, isLoading } = useWebsiteData();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

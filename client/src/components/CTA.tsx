@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 
 export function CTA() {
   return (
-    <section className="py-24">
+    <section className="py-24 page-enter">
       <div className="container mx-auto px-4">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-8 md:p-16">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-8 md:p-16 card-enter">
           <div className="absolute right-0 top-0 -translate-y-1/4 translate-x-1/4 opacity-10">
             <Flame className="h-96 w-96" />
           </div>

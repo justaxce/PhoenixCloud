@@ -44,7 +44,7 @@ export function PlanCard({ plan, redirectLink = "#" }: PlanCardProps) {
 
   return (
     <Card
-      className={`relative flex flex-col ${plan.popular ? "border-primary ring-2 ring-primary" : ""}`}
+      className={`relative flex flex-col card-enter hover-lift ${plan.popular ? "border-primary ring-2 ring-primary" : ""}`}
       data-testid={`card-plan-${plan.id}`}
     >
       {plan.popular && (
