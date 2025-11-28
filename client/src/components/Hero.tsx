@@ -1,12 +1,38 @@
 import { Link } from "wouter";
-import { ArrowRight, Server, Shield, Zap } from "lucide-react";
+import { ArrowRight, Server, Shield, Zap, Cloud, Database, Cpu, HardDrive, Globe, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TbBrandMinecraft } from "react-icons/tb";
+
+const floatingIcons = [
+  { Icon: TbBrandMinecraft, className: "top-[15%] left-[8%]", delay: "0s", size: "w-12 h-12" },
+  { Icon: Server, className: "top-[25%] right-[12%]", delay: "1s", size: "w-8 h-8" },
+  { Icon: Cloud, className: "top-[60%] left-[5%]", delay: "2s", size: "w-9 h-9" },
+  { Icon: Database, className: "bottom-[30%] right-[8%]", delay: "0.5s", size: "w-7 h-7" },
+  { Icon: Cpu, className: "top-[40%] left-[15%]", delay: "1.5s", size: "w-6 h-6" },
+  { Icon: HardDrive, className: "top-[70%] right-[15%]", delay: "2.5s", size: "w-8 h-8" },
+  { Icon: Globe, className: "top-[10%] right-[25%]", delay: "3s", size: "w-7 h-7" },
+  { Icon: Box, className: "bottom-[20%] left-[20%]", delay: "1.8s", size: "w-6 h-6" },
+];
 
 export function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
+      
+      {/* Floating Icons */}
+      {floatingIcons.map(({ Icon, className, delay, size }, index) => (
+        <div
+          key={index}
+          className={`absolute ${className} opacity-20 dark:opacity-30 pointer-events-none z-0`}
+          style={{
+            animation: `float 6s ease-in-out infinite`,
+            animationDelay: delay,
+          }}
+        >
+          <Icon className={`${size} text-primary`} />
+        </div>
+      ))}
       
       <div className="container relative mx-auto px-4 py-24 md:py-32 lg:py-40">
         <div className="mx-auto max-w-4xl text-center">
