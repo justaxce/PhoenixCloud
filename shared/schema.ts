@@ -67,7 +67,6 @@ export interface Settings {
   ctaDescription?: string;
   backgroundImageLight?: string;
   backgroundImageDark?: string;
-  globalBgImage?: string;
 }
 
 export interface AdminUser {
