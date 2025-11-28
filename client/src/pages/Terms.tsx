@@ -15,10 +15,10 @@ interface TermsProps {
 
 export default function Terms({ categories = [] }: TermsProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative z-10">
       <Header categories={categories} />
-      <main className="flex-1">
-        <section className="py-16">
+      <main className="flex-1 relative z-10">
+        <section className="py-16 relative z-10 bg-background/80 backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-2xl text-center">
               <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
@@ -31,10 +31,10 @@ export default function Terms({ categories = [] }: TermsProps) {
           </div>
         </section>
 
-        <section className="py-16">
+        <section className="py-16 relative z-10 bg-background/80 backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl">
-              <Card className="p-8 bg-card text-card-foreground">
+              <Card className="p-8 bg-card text-card-foreground shadow-lg">
                 <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
                 <p className="mb-4 leading-relaxed">
                   Welcome to PheonixCloud ("Company", "we", "our", "us").
