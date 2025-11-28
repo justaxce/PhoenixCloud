@@ -53,10 +53,6 @@ const pool = mysql.createPool({
 
 pool.on("error", (err: any) => {
   console.error("MySQL Pool error:", err.message);
-  // Reset initialized flag to allow retrying
-  if (err.code === "ETIMEDOUT" || err.code === "ECONNREFUSED") {
-    console.warn("Database connection issue detected, will retry on next request");
-  }
 });
 
 pool.on("connection", (connection) => {
@@ -76,11 +72,11 @@ export class MySQLStorage implements IStorage {
   async initializeDatabase(): Promise<void> {
     if (this.initialized) return;
 
-    let connection;
+    let connection: any;
     try {
       connection = await Promise.race([
         pool.getConnection(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 15000))
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Connection timeout")), 15000))
       ]);
     } catch (error: any) {
       console.warn("Database initialization delayed, will retry:", error.message);
@@ -244,12 +240,12 @@ export class MySQLStorage implements IStorage {
       }
 
       console.log("Database initialized successfully");
+      this.initialized = true;
     } catch (error: any) {
-      this.initialized = false;
       console.error("Database initialization error:", error.message);
     } finally {
       if (connection) {
-        connection.release();
+        (connection as any).release();
       }
     }
   }
