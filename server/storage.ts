@@ -445,8 +445,8 @@ export class MySQLStorage implements IStorage {
     const pool = this.getPool();
     const id = randomUUID();
     await pool.query(
-      "INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [id, plan.name, plan.description, plan.priceUsd, plan.priceInr, plan.period, JSON.stringify(plan.features), plan.popular || false, plan.categoryId, plan.subcategoryId]
+      "INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId, `order`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [id, plan.name, plan.description, plan.priceUsd, plan.priceInr, plan.period, JSON.stringify(plan.features), plan.popular || false, plan.categoryId, plan.subcategoryId, plan.order || 0]
     );
     return { ...plan, id };
   }
@@ -459,7 +459,7 @@ export class MySQLStorage implements IStorage {
 
     const current = (existing[0] as any);
     await pool.query(
-      "UPDATE plans SET name = ?, description = ?, priceUsd = ?, priceInr = ?, period = ?, features = ?, popular = ?, categoryId = ?, subcategoryId = ? WHERE id = ?",
+      "UPDATE plans SET name = ?, description = ?, priceUsd = ?, priceInr = ?, period = ?, features = ?, popular = ?, categoryId = ?, subcategoryId = ?, `order` = ? WHERE id = ?",
       [
         updates.name || current.name,
         updates.description || current.description,
@@ -470,6 +470,7 @@ export class MySQLStorage implements IStorage {
         updates.popular !== undefined ? updates.popular : current.popular,
         updates.categoryId || current.categoryId,
         updates.subcategoryId || current.subcategoryId,
+        updates.order !== undefined ? updates.order : current.order,
         id,
       ]
     );
