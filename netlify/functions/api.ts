@@ -38,14 +38,7 @@ const mysql = serverlessMysql({
 });
 
 async function query(sql: string, values?: any[]) {
-  try {
-    const results = await mysql.query(sql, values);
-    await mysql.end();
-    return results;
-  } catch (error) {
-    await mysql.end();
-    throw error;
-  }
+  return await mysql.query(sql, values);
 }
 
 async function ensureTables() {
@@ -200,25 +193,30 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const { username, password } = body;
       const result = await query("SELECT passwordHash FROM admin_users WHERE username = ?", [username]);
       if (Array.isArray(result) && result.length > 0 && result[0].passwordHash === hashPassword(password)) {
+        await mysql.end();
         return jsonResponse(200, { success: true });
       }
+      await mysql.end();
       return jsonResponse(401, { error: "Invalid credentials" });
     }
 
     // Admin Users CRUD
     if (apiPath === "/admin/users" && method === "GET") {
       const users = await query("SELECT id, username FROM admin_users");
+      await mysql.end();
       return jsonResponse(200, users || []);
     }
 
     if (apiPath === "/admin/users" && method === "POST") {
       const { username, password } = body;
       if (!username || !password) {
+        await mysql.end();
         return jsonResponse(400, { error: "Username and password required" });
       }
       const id = randomUUID();
       const passwordHash = hashPassword(password);
       await query("INSERT INTO admin_users (id, username, passwordHash) VALUES (?, ?, ?)", [id, username, passwordHash]);
+      await mysql.end();
       return jsonResponse(201, { id, username });
     }
 
@@ -226,6 +224,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     if (apiPath.startsWith("/admin/users/") && method === "DELETE") {
       const id = apiPath.split("/admin/users/")[1];
       await query("DELETE FROM admin_users WHERE id = ?", [id]);
+      await mysql.end();
       return jsonResponse(200, { success: true });
     }
 
@@ -237,6 +236,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         ...cat,
         subcategories: (subcategories || []).filter((sub: any) => sub.categoryId === cat.id),
       }));
+      await mysql.end();
       return jsonResponse(200, result);
     }
 
@@ -244,18 +244,21 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const { name, slug } = body;
       const id = randomUUID();
       await query("INSERT INTO categories (id, name, slug) VALUES (?, ?, ?)", [id, name, slug]);
+      await mysql.end();
       return jsonResponse(201, { id, name, slug });
     }
 
     if (apiPath.startsWith("/categories/") && method === "DELETE") {
       const id = apiPath.split("/categories/")[1];
       await query("DELETE FROM categories WHERE id = ?", [id]);
+      await mysql.end();
       return jsonResponse(200, { success: true });
     }
 
     // Subcategories
     if (apiPath === "/subcategories" && method === "GET") {
       const subcategories = await query("SELECT * FROM subcategories");
+      await mysql.end();
       return jsonResponse(200, subcategories || []);
     }
 
@@ -263,12 +266,14 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const { name, slug, categoryId } = body;
       const id = randomUUID();
       await query("INSERT INTO subcategories (id, name, slug, categoryId) VALUES (?, ?, ?, ?)", [id, name, slug, categoryId]);
+      await mysql.end();
       return jsonResponse(201, { id, name, slug, categoryId });
     }
 
     if (apiPath.startsWith("/subcategories/") && method === "DELETE") {
       const id = apiPath.split("/subcategories/")[1];
       await query("DELETE FROM subcategories WHERE id = ?", [id]);
+      await mysql.end();
       return jsonResponse(200, { success: true });
     }
 
@@ -280,6 +285,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
         popular: Boolean(row.popular),
       }));
+      await mysql.end();
       return jsonResponse(200, plans);
     }
 
@@ -290,6 +296,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         "INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [id, name, description, priceUsd, priceInr, period, JSON.stringify(features || []), popular || false, categoryId, subcategoryId]
       );
+      await mysql.end();
       return jsonResponse(201, { id, ...body });
     }
 
@@ -300,18 +307,21 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         "UPDATE plans SET name = ?, description = ?, priceUsd = ?, priceInr = ?, period = ?, features = ?, popular = ?, categoryId = ?, subcategoryId = ? WHERE id = ?",
         [name, description, priceUsd, priceInr, period, JSON.stringify(features || []), popular || false, categoryId, subcategoryId, id]
       );
+      await mysql.end();
       return jsonResponse(200, { id, ...body });
     }
 
     if (apiPath.startsWith("/plans/") && method === "DELETE") {
       const id = apiPath.split("/plans/")[1];
       await query("DELETE FROM plans WHERE id = ?", [id]);
+      await mysql.end();
       return jsonResponse(200, { success: true });
     }
 
     // FAQs
     if (apiPath === "/faqs" && method === "GET") {
       const faqs = await query("SELECT * FROM faqs");
+      await mysql.end();
       return jsonResponse(200, faqs || []);
     }
 
@@ -319,6 +329,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const { question, answer } = body;
       const id = randomUUID();
       await query("INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)", [id, question, answer]);
+      await mysql.end();
       return jsonResponse(201, { id, question, answer });
     }
 
@@ -326,12 +337,14 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       const id = apiPath.split("/faqs/")[1];
       const { question, answer } = body;
       await query("UPDATE faqs SET question = ?, answer = ? WHERE id = ?", [question, answer, id]);
+      await mysql.end();
       return jsonResponse(200, { id, question, answer });
     }
 
     if (apiPath.startsWith("/faqs/") && method === "DELETE") {
       const id = apiPath.split("/faqs/")[1];
       await query("DELETE FROM faqs WHERE id = ?", [id]);
+      await mysql.end();
       return jsonResponse(200, { success: true });
     }
 
@@ -339,6 +352,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     if (apiPath === "/settings" && method === "GET") {
       const rows = await query("SELECT * FROM settings WHERE id = 1");
       const row = (rows && rows[0]) || {};
+      await mysql.end();
       return jsonResponse(200, {
         currency: row.currency || "usd",
         supportLink: row.supportLink || "",
@@ -401,14 +415,17 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
           s.ctaTitle || "", s.ctaDescription || "", s.backgroundImageLight || "", s.backgroundImageDark || "",
         ]
       );
+      await mysql.end();
       return jsonResponse(200, body);
     }
 
     // Not found
+    await mysql.end();
     return jsonResponse(404, { error: "Not found", path: apiPath });
 
   } catch (error: any) {
     console.error("API Error:", error);
+    await mysql.end();
     return jsonResponse(500, { error: error.message || "Internal server error" });
   }
 };
