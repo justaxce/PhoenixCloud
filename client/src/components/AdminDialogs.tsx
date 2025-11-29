@@ -200,6 +200,9 @@ export function AddSubcategoryDialog({
         setOrder(0);
         onOpenChange(false);
         onSuccess();
+      } else if (res.status === 409) {
+        const error = await res.json();
+        toast({ title: error.error, variant: "destructive" });
       } else {
         toast({ title: `Error ${editingSubcategory ? "updating" : "creating"} subcategory`, variant: "destructive" });
       }
@@ -382,6 +385,9 @@ export function AddPlanDialog({
         setOrder(0);
         onOpenChange(false);
         onSuccess();
+      } else if (res.status === 409) {
+        const error = await res.json();
+        toast({ title: error.error, variant: "destructive" });
       } else {
         toast({ title: `Error ${editingPlan ? "updating" : "creating"} plan`, variant: "destructive" });
       }

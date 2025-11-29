@@ -143,6 +143,17 @@ export async function registerRoutes(
   app.post("/api/subcategories", async (req, res) => {
     try {
       const { name, slug, categoryId, order } = subcategorySchema.parse(req.body);
+      
+      // Check for duplicate order in same category
+      if (order !== undefined && order !== null) {
+        const existing = await storage.getSubcategoriesByCategory(categoryId);
+        const duplicate = existing.find(s => s.order === order);
+        if (duplicate) {
+          res.status(409).json({ error: `Position ${order} is already used by "${duplicate.name}". Please choose a different position.`, conflictingItem: duplicate });
+          return;
+        }
+      }
+      
       const subcategory = await storage.createSubcategory(name, slug, categoryId, order);
       res.status(201).json(subcategory);
     } catch (error) {
@@ -152,10 +163,26 @@ export async function registerRoutes(
 
   app.patch("/api/subcategories/:id", async (req, res) => {
     try {
-      const { name, slug, order } = subcategorySchema.parse(req.body);
-      const subcategory = await storage.updateSubcategory(req.params.id, name, slug, order);
-      if (subcategory) {
-        res.json(subcategory);
+      const { name, slug, categoryId, order } = subcategorySchema.parse(req.body);
+      const existing = await storage.getSubcategoriesByCategory(categoryId || "");
+      const current = existing.find(s => s.id === req.params.id);
+      if (!current) {
+        res.status(404).json({ error: "Subcategory not found" });
+        return;
+      }
+
+      // Check for duplicate order in same category (excluding current item)
+      if (order !== undefined && order !== null && order !== current.order) {
+        const duplicate = existing.find(s => s.order === order && s.id !== req.params.id);
+        if (duplicate) {
+          res.status(409).json({ error: `Position ${order} is already used by "${duplicate.name}". Please choose a different position.`, conflictingItem: duplicate });
+          return;
+        }
+      }
+
+      const updated = await storage.updateSubcategory(req.params.id, name, slug, order);
+      if (updated) {
+        res.json(updated);
       } else {
         res.status(404).json({ error: "Subcategory not found" });
       }
@@ -188,6 +215,17 @@ export async function registerRoutes(
   app.post("/api/plans", async (req, res) => {
     try {
       const plan = planSchema.parse(req.body);
+      
+      // Check for duplicate order in same subcategory
+      if (plan.order !== undefined && plan.order !== null) {
+        const existing = await storage.getPlansBySubcategory(plan.subcategoryId);
+        const duplicate = existing.find(p => p.order === plan.order);
+        if (duplicate) {
+          res.status(409).json({ error: `Position ${plan.order} is already used by "${duplicate.name}". Please choose a different position.`, conflictingItem: duplicate });
+          return;
+        }
+      }
+      
       const created = await storage.createPlan(plan);
       res.status(201).json(created);
     } catch (error) {
@@ -198,6 +236,22 @@ export async function registerRoutes(
   app.patch("/api/plans/:id", async (req, res) => {
     try {
       const plan = planSchema.parse(req.body);
+      const existing = await storage.getPlansBySubcategory(plan.subcategoryId);
+      const current = existing.find(p => p.id === req.params.id);
+      if (!current) {
+        res.status(404).json({ error: "Plan not found" });
+        return;
+      }
+
+      // Check for duplicate order in same subcategory (excluding current item)
+      if (plan.order !== undefined && plan.order !== null && plan.order !== current.order) {
+        const duplicate = existing.find(p => p.order === plan.order && p.id !== req.params.id);
+        if (duplicate) {
+          res.status(409).json({ error: `Position ${plan.order} is already used by "${duplicate.name}". Please choose a different position.`, conflictingItem: duplicate });
+          return;
+        }
+      }
+
       const updated = await storage.updatePlan(req.params.id, plan);
       if (updated) {
         res.json(updated);
