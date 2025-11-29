@@ -1,6 +1,6 @@
 import type { Handler } from "@netlify/functions";
 import { scryptSync, randomUUID } from "crypto";
-import postgres from "postgres";
+import mysql from "mysql2/promise";
 
 const SALT = "phoenix-salt";
 
@@ -25,111 +25,164 @@ function jsonResponse(statusCode: number, body: any) {
   };
 }
 
-function getDb() {
+function getConnectionConfig() {
   const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    console.error("DATABASE_URL not set");
-    return null;
+  const mysqlUser = process.env.MYSQL_USER || "u4_4OW4n62mjZ";
+  const mysqlPassword = process.env.MYSQL_PASSWORD || "+3GFoa+x55vSzFL4pnX1=l6F";
+  const mysqlHost = process.env.MYSQL_HOST || "panel.sriyannodes.cloud";
+  const mysqlPort = parseInt(process.env.MYSQL_PORT || "3306");
+  const mysqlDatabase = process.env.MYSQL_DATABASE || "s4_pheonix-cloud";
+
+  // If DATABASE_URL exists but points to PostgreSQL/Neon, ignore it and use MySQL
+  if (connectionString && !connectionString.includes("neon") && !connectionString.includes("postgres")) {
+    try {
+      const urlObj = new URL(connectionString);
+      return {
+        host: urlObj.hostname,
+        port: parseInt(urlObj.port || "3306"),
+        user: urlObj.username,
+        password: decodeURIComponent(urlObj.password),
+        database: urlObj.pathname.slice(1),
+      };
+    } catch (e) {
+      // Fall through to MySQL defaults
+    }
   }
-  return postgres(connectionString, {
-    max: 1,
-    idle_timeout: 20,
-    connect_timeout: 30,
-    ssl: 'require',
-  });
+
+  // Use MySQL credentials
+  return {
+    host: mysqlHost,
+    port: mysqlPort,
+    user: mysqlUser,
+    password: mysqlPassword,
+    database: mysqlDatabase,
+  };
 }
 
-async function ensureTables(db: ReturnType<typeof postgres>) {
+async function getDb() {
+  const config = getConnectionConfig();
+  if (!config) return null;
+  const pool = mysql.createPool({
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: config.database,
+    waitForConnections: true,
+    connectionLimit: 1,
+    queueLimit: 0,
+  });
+  
+  return pool;
+}
+
+async function ensureTables(pool: mysql.Pool) {
+  const conn = await pool.getConnection();
   try {
-    await db`CREATE TABLE IF NOT EXISTS categories (
-      id VARCHAR(36) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      slug VARCHAR(255) NOT NULL UNIQUE
-    )`;
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id VARCHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL UNIQUE
+      )
+    `);
 
-    await db`CREATE TABLE IF NOT EXISTS subcategories (
-      id VARCHAR(36) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      slug VARCHAR(255) NOT NULL UNIQUE,
-      categoryId VARCHAR(36) NOT NULL REFERENCES categories(id) ON DELETE CASCADE
-    )`;
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS subcategories (
+        id VARCHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL UNIQUE,
+        categoryId VARCHAR(36) NOT NULL,
+        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
+      )
+    `);
 
-    await db`CREATE TABLE IF NOT EXISTS plans (
-      id VARCHAR(36) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      priceUsd VARCHAR(50),
-      priceInr VARCHAR(50),
-      period VARCHAR(50),
-      features JSONB,
-      popular BOOLEAN DEFAULT FALSE,
-      categoryId VARCHAR(36),
-      subcategoryId VARCHAR(36)
-    )`;
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS plans (
+        id VARCHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        priceUsd VARCHAR(50),
+        priceInr VARCHAR(50),
+        period VARCHAR(50),
+        features JSON,
+        popular BOOLEAN DEFAULT FALSE,
+        categoryId VARCHAR(36),
+        subcategoryId VARCHAR(36),
+        FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE SET NULL,
+        FOREIGN KEY (subcategoryId) REFERENCES subcategories(id) ON DELETE SET NULL
+      )
+    `);
 
-    await db`CREATE TABLE IF NOT EXISTS faqs (
-      id VARCHAR(36) PRIMARY KEY,
-      question TEXT NOT NULL,
-      answer TEXT NOT NULL
-    )`;
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS faqs (
+        id VARCHAR(36) PRIMARY KEY,
+        question TEXT NOT NULL,
+        answer TEXT NOT NULL
+      )
+    `);
 
-    await db`CREATE TABLE IF NOT EXISTS settings (
-      id INTEGER PRIMARY KEY,
-      currency VARCHAR(10) DEFAULT 'usd',
-      supportLink VARCHAR(500),
-      redirectLink VARCHAR(500),
-      instagramLink VARCHAR(500),
-      youtubeLink VARCHAR(500),
-      email VARCHAR(255),
-      documentationLink VARCHAR(500),
-      heroTitleLine1 VARCHAR(255),
-      heroTitleLine2 VARCHAR(255),
-      heroDescription TEXT,
-      stat1Value VARCHAR(50),
-      stat1Label VARCHAR(100),
-      stat2Value VARCHAR(50),
-      stat2Label VARCHAR(100),
-      stat3Value VARCHAR(50),
-      stat3Label VARCHAR(100),
-      featuresSectionTitle VARCHAR(255),
-      featuresSectionDescription TEXT,
-      feature1Title VARCHAR(255),
-      feature1Description TEXT,
-      feature2Title VARCHAR(255),
-      feature2Description TEXT,
-      feature3Title VARCHAR(255),
-      feature3Description TEXT,
-      feature4Title VARCHAR(255),
-      feature4Description TEXT,
-      feature5Title VARCHAR(255),
-      feature5Description TEXT,
-      feature6Title VARCHAR(255),
-      feature6Description TEXT,
-      ctaTitle VARCHAR(255),
-      ctaDescription TEXT,
-      backgroundImageLight TEXT,
-      backgroundImageDark TEXT
-    )`;
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS settings (
+        id INTEGER PRIMARY KEY,
+        currency VARCHAR(10) DEFAULT 'usd',
+        supportLink VARCHAR(500),
+        redirectLink VARCHAR(500),
+        instagramLink VARCHAR(500),
+        youtubeLink VARCHAR(500),
+        email VARCHAR(255),
+        documentationLink VARCHAR(500),
+        heroTitleLine1 VARCHAR(255),
+        heroTitleLine2 VARCHAR(255),
+        heroDescription TEXT,
+        stat1Value VARCHAR(50),
+        stat1Label VARCHAR(100),
+        stat2Value VARCHAR(50),
+        stat2Label VARCHAR(100),
+        stat3Value VARCHAR(50),
+        stat3Label VARCHAR(100),
+        featuresSectionTitle VARCHAR(255),
+        featuresSectionDescription TEXT,
+        feature1Title VARCHAR(255),
+        feature1Description TEXT,
+        feature2Title VARCHAR(255),
+        feature2Description TEXT,
+        feature3Title VARCHAR(255),
+        feature3Description TEXT,
+        feature4Title VARCHAR(255),
+        feature4Description TEXT,
+        feature5Title VARCHAR(255),
+        feature5Description TEXT,
+        feature6Title VARCHAR(255),
+        feature6Description TEXT,
+        ctaTitle VARCHAR(255),
+        ctaDescription TEXT,
+        backgroundImageLight TEXT,
+        backgroundImageDark TEXT
+      )
+    `);
 
-    await db`CREATE TABLE IF NOT EXISTS admin_users (
-      id VARCHAR(36) PRIMARY KEY,
-      username VARCHAR(255) NOT NULL UNIQUE,
-      passwordHash VARCHAR(255) NOT NULL
-    )`;
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id VARCHAR(36) PRIMARY KEY,
+        username VARCHAR(255) NOT NULL UNIQUE,
+        passwordHash VARCHAR(255) NOT NULL
+      )
+    `);
 
-    const settings = await db`SELECT * FROM settings WHERE id = 1`;
-    if (settings.length === 0) {
-      await db`INSERT INTO settings (id, currency, supportLink, redirectLink) VALUES (1, 'usd', '', '')`;
+    const [settings] = await conn.query("SELECT * FROM settings WHERE id = 1");
+    if (Array.isArray(settings) && settings.length === 0) {
+      await conn.query("INSERT INTO settings (id, currency, supportLink, redirectLink) VALUES (?, ?, ?, ?)", [1, "usd", "", ""]);
     }
 
-    const existingAdmin = await db`SELECT id FROM admin_users WHERE username = 'admin'`;
-    if (existingAdmin.length === 0) {
+    const [existingAdmin] = await conn.query("SELECT id FROM admin_users WHERE username = ?", ["admin"]);
+    if (Array.isArray(existingAdmin) && existingAdmin.length === 0) {
       const adminId = randomUUID();
       const passwordHash = hashPassword("admin123");
-      await db`INSERT INTO admin_users (id, username, passwordhash) VALUES (${adminId}, 'admin', ${passwordHash})`;
+      await conn.query("INSERT INTO admin_users (id, username, passwordHash) VALUES (?, ?, ?)", [adminId, "admin", passwordHash]);
     }
-  } catch (error: any) {
-    console.error("Table creation error:", error.message);
+  } finally {
+    conn.release();
   }
 }
 
@@ -140,342 +193,218 @@ const handler: Handler = async (event, context) => {
     return { statusCode: 200, headers: corsHeaders(), body: "" };
   }
 
-  const db = getDb();
-  if (!db) {
-    return jsonResponse(500, { error: "Database not configured", hasDbUrl: !!process.env.DATABASE_URL });
+  const pool = await getDb();
+  if (!pool) {
+    return jsonResponse(500, { error: "Database not configured" });
   }
 
   try {
-    await ensureTables(db);
+    await ensureTables(pool);
 
-    // Parse the API path from the path
     let rawPath = event.path || "";
-    
-    // Extract the path after /api/
     let apiPath = "";
     if (rawPath.includes("/api/")) {
       apiPath = "/" + rawPath.split("/api/")[1];
-    } else if (rawPath.includes("/.netlify/functions/api/")) {
-      apiPath = "/" + rawPath.split("/.netlify/functions/api/")[1];
-    } else if (rawPath.includes("/.netlify/functions/api")) {
-      apiPath = rawPath.replace("/.netlify/functions/api", "") || "/";
     } else {
       apiPath = rawPath;
     }
-    
-    // Clean up path
+
     if (!apiPath.startsWith("/")) {
       apiPath = "/" + apiPath;
     }
     if (apiPath.length > 1 && apiPath.endsWith("/")) {
       apiPath = apiPath.slice(0, -1);
     }
-    if (apiPath === "") {
-      apiPath = "/";
-    }
 
-    console.log("Raw path:", rawPath, "Parsed API path:", apiPath);
+    console.log("Parsed API path:", apiPath);
 
     const method = event.httpMethod;
     let body: any = {};
-    
+
     if (event.body) {
       try {
         body = JSON.parse(event.body);
       } catch (e) {
-        await db.end();
         return jsonResponse(400, { error: "Invalid JSON body" });
       }
     }
 
     const pathParts = apiPath.split("/").filter(Boolean);
+    const conn = await pool.getConnection();
 
-    // Admin Login
-    if (apiPath === "/admin/login" && method === "POST") {
-      const { username, password } = body;
-      console.log("Login attempt for user:", username);
-      const result = await db`SELECT passwordhash FROM admin_users WHERE username = ${username}`;
-      if (result.length > 0 && result[0].passwordhash === hashPassword(password)) {
-        await db.end();
-        return jsonResponse(200, { success: true });
+    try {
+      // Admin Login
+      if (apiPath === "/admin/login" && method === "POST") {
+        const { username, password } = body;
+        const [result] = await conn.query("SELECT passwordHash FROM admin_users WHERE username = ?", [username]);
+        if (Array.isArray(result) && result.length > 0 && (result[0] as any).passwordHash === hashPassword(password)) {
+          return jsonResponse(200, { success: true });
+        }
+        return jsonResponse(401, { error: "Invalid credentials" });
       }
-      await db.end();
-      return jsonResponse(401, { error: "Invalid credentials" });
-    }
 
-    // Admin Users CRUD
-    if (apiPath === "/admin/users" && method === "GET") {
-      const users = await db`SELECT id, username FROM admin_users`;
-      await db.end();
-      return jsonResponse(200, users);
-    }
-
-    if (apiPath === "/admin/users" && method === "POST") {
-      const { username, password } = body;
-      if (!username || !password) {
-        await db.end();
-        return jsonResponse(400, { error: "Username and password required" });
+      // Admin Users CRUD
+      if (apiPath === "/admin/users" && method === "GET") {
+        const [users] = await conn.query("SELECT id, username FROM admin_users");
+        return jsonResponse(200, users);
       }
-      const id = randomUUID();
-      const passwordHash = hashPassword(password);
-      await db`INSERT INTO admin_users (id, username, passwordhash) VALUES (${id}, ${username}, ${passwordHash})`;
-      await db.end();
-      return jsonResponse(201, { id, username });
-    }
 
-    if (pathParts[0] === "admin" && pathParts[1] === "users" && pathParts[2] && method === "PATCH") {
-      const id = pathParts[2];
-      const { password } = body;
-      if (!password) {
-        await db.end();
-        return jsonResponse(400, { error: "Password required" });
+      if (apiPath === "/admin/users" && method === "POST") {
+        const { username, password } = body;
+        if (!username || !password) {
+          return jsonResponse(400, { error: "Username and password required" });
+        }
+        const id = randomUUID();
+        const passwordHash = hashPassword(password);
+        await conn.query("INSERT INTO admin_users (id, username, passwordHash) VALUES (?, ?, ?)", [id, username, passwordHash]);
+        return jsonResponse(201, { id, username });
       }
-      const passwordHash = hashPassword(password);
-      await db`UPDATE admin_users SET passwordhash = ${passwordHash} WHERE id = ${id}`;
-      const result = await db`SELECT id, username FROM admin_users WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, result[0] || { error: "User not found" });
-    }
 
-    if (pathParts[0] === "admin" && pathParts[1] === "users" && pathParts[2] && method === "DELETE") {
-      const id = pathParts[2];
-      await db`DELETE FROM admin_users WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, { success: true });
-    }
+      // Categories
+      if (apiPath === "/categories" && method === "GET") {
+        const [categories] = await conn.query("SELECT * FROM categories");
+        const [subcategories] = await conn.query("SELECT * FROM subcategories");
+        const result = (categories as any[]).map((cat) => ({
+          ...cat,
+          subcategories: (subcategories as any[]).filter((sub) => sub.categoryId === cat.id),
+        }));
+        return jsonResponse(200, result);
+      }
 
-    // Categories
-    if (apiPath === "/categories" && method === "GET") {
-      const categories = await db`SELECT * FROM categories`;
-      const subcategories = await db`SELECT * FROM subcategories`;
-      const result = categories.map((cat: any) => ({
-        ...cat,
-        subcategories: subcategories.filter((sub: any) => sub.categoryid === cat.id),
-      }));
-      await db.end();
-      return jsonResponse(200, result);
-    }
+      if (apiPath === "/categories" && method === "POST") {
+        const { name, slug } = body;
+        const id = randomUUID();
+        await conn.query("INSERT INTO categories (id, name, slug) VALUES (?, ?, ?)", [id, name, slug]);
+        return jsonResponse(201, { id, name, slug });
+      }
 
-    if (apiPath === "/categories" && method === "POST") {
-      const { name, slug } = body;
-      const id = randomUUID();
-      await db`INSERT INTO categories (id, name, slug) VALUES (${id}, ${name}, ${slug})`;
-      await db.end();
-      return jsonResponse(201, { id, name, slug });
-    }
+      // Plans
+      if (apiPath === "/plans" && method === "GET") {
+        const [rows] = await conn.query("SELECT * FROM plans");
+        const plans = (rows as any[]).map((row) => ({
+          ...row,
+          features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
+          popular: Boolean(row.popular),
+        }));
+        return jsonResponse(200, plans);
+      }
 
-    if (pathParts[0] === "categories" && pathParts[1] && method === "PATCH") {
-      const id = pathParts[1];
-      const { name, slug } = body;
-      const result = await db`UPDATE categories SET name = ${name}, slug = ${slug} WHERE id = ${id} RETURNING *`;
-      await db.end();
-      return jsonResponse(200, result[0] || { error: "Category not found" });
-    }
+      if (apiPath === "/plans" && method === "POST") {
+        const { name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId } = body;
+        const id = randomUUID();
+        await conn.query(
+          "INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          [id, name, description, priceUsd, priceInr, period, JSON.stringify(features), popular || false, categoryId, subcategoryId]
+        );
+        return jsonResponse(201, { id, ...body });
+      }
 
-    if (pathParts[0] === "categories" && pathParts[1] && method === "DELETE") {
-      const id = pathParts[1];
-      await db`DELETE FROM categories WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, { success: true });
-    }
+      // FAQs
+      if (apiPath === "/faqs" && method === "GET") {
+        const [faqs] = await conn.query("SELECT * FROM faqs");
+        return jsonResponse(200, faqs);
+      }
 
-    // Subcategories
-    if (apiPath === "/subcategories" && method === "GET") {
-      const subcategories = await db`SELECT * FROM subcategories`;
-      await db.end();
-      return jsonResponse(200, subcategories);
-    }
+      if (apiPath === "/faqs" && method === "POST") {
+        const { question, answer } = body;
+        const id = randomUUID();
+        await conn.query("INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)", [id, question, answer]);
+        return jsonResponse(201, { id, question, answer });
+      }
 
-    if (apiPath === "/subcategories" && method === "POST") {
-      const { name, slug, categoryId } = body;
-      const id = randomUUID();
-      await db`INSERT INTO subcategories (id, name, slug, categoryId) VALUES (${id}, ${name}, ${slug}, ${categoryId})`;
-      await db.end();
-      return jsonResponse(201, { id, name, slug, categoryId });
-    }
+      // Settings
+      if (apiPath === "/settings" && method === "GET") {
+        const [rows] = await conn.query("SELECT * FROM settings WHERE id = 1");
+        const row = (rows as any[])[0] || {};
+        return jsonResponse(200, {
+          currency: row.currency || "usd",
+          supportLink: row.supportLink || "",
+          redirectLink: row.redirectLink || "",
+          instagramLink: row.instagramLink || "",
+          youtubeLink: row.youtubeLink || "",
+          email: row.email || "",
+          documentationLink: row.documentationLink || "",
+          heroTitleLine1: row.heroTitleLine1 || "Cloud Hosting That",
+          heroTitleLine2: row.heroTitleLine2 || "Rises Above",
+          heroDescription: row.heroDescription || "Experience blazing-fast performance with Phoenix Cloud.",
+          stat1Value: row.stat1Value || "99.9%",
+          stat1Label: row.stat1Label || "Uptime SLA",
+          stat2Value: row.stat2Value || "50+",
+          stat2Label: row.stat2Label || "Global Locations",
+          stat3Value: row.stat3Value || "24/7",
+          stat3Label: row.stat3Label || "Expert Support",
+          featuresSectionTitle: row.featuresSectionTitle || "Why Choose Phoenix Cloud?",
+          featuresSectionDescription: row.featuresSectionDescription || "Built for performance, reliability, and ease of use.",
+          feature1Title: row.feature1Title || "Blazing Fast",
+          feature1Description: row.feature1Description || "NVMe SSD storage.",
+          feature2Title: row.feature2Title || "DDoS Protection",
+          feature2Description: row.feature2Description || "Enterprise-grade protection.",
+          feature3Title: row.feature3Title || "Global Network",
+          feature3Description: row.feature3Description || "Low latency worldwide.",
+          feature4Title: row.feature4Title || "Instant Scaling",
+          feature4Description: row.feature4Description || "Scale on demand.",
+          feature5Title: row.feature5Title || "24/7 Support",
+          feature5Description: row.feature5Description || "Expert support team.",
+          feature6Title: row.feature6Title || "99.9% Uptime",
+          feature6Description: row.feature6Description || "Industry-leading SLA.",
+          ctaTitle: row.ctaTitle || "Ready to Rise Above?",
+          ctaDescription: row.ctaDescription || "Get started in minutes.",
+          backgroundImageLight: row.backgroundImageLight || "",
+          backgroundImageDark: row.backgroundImageDark || "",
+        });
+      }
 
-    if (pathParts[0] === "subcategories" && pathParts[1] && method === "PATCH") {
-      const id = pathParts[1];
-      const { name, slug } = body;
-      await db`UPDATE subcategories SET name = ${name}, slug = ${slug} WHERE id = ${id}`;
-      const result = await db`SELECT * FROM subcategories WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, result[0] || { error: "Subcategory not found" });
-    }
+      if (apiPath === "/settings" && method === "POST") {
+        const settings = body;
+        await conn.query(
+          "UPDATE settings SET currency = ?, supportLink = ?, redirectLink = ?, instagramLink = ?, youtubeLink = ?, email = ?, documentationLink = ?, heroTitleLine1 = ?, heroTitleLine2 = ?, heroDescription = ?, stat1Value = ?, stat1Label = ?, stat2Value = ?, stat2Label = ?, stat3Value = ?, stat3Label = ?, featuresSectionTitle = ?, featuresSectionDescription = ?, feature1Title = ?, feature1Description = ?, feature2Title = ?, feature2Description = ?, feature3Title = ?, feature3Description = ?, feature4Title = ?, feature4Description = ?, feature5Title = ?, feature5Description = ?, feature6Title = ?, feature6Description = ?, ctaTitle = ?, ctaDescription = ?, backgroundImageLight = ?, backgroundImageDark = ? WHERE id = 1",
+          [
+            settings.currency || "usd",
+            settings.supportLink || "",
+            settings.redirectLink || "",
+            settings.instagramLink || "",
+            settings.youtubeLink || "",
+            settings.email || "",
+            settings.documentationLink || "",
+            settings.heroTitleLine1 || "",
+            settings.heroTitleLine2 || "",
+            settings.heroDescription || "",
+            settings.stat1Value || "",
+            settings.stat1Label || "",
+            settings.stat2Value || "",
+            settings.stat2Label || "",
+            settings.stat3Value || "",
+            settings.stat3Label || "",
+            settings.featuresSectionTitle || "",
+            settings.featuresSectionDescription || "",
+            settings.feature1Title || "",
+            settings.feature1Description || "",
+            settings.feature2Title || "",
+            settings.feature2Description || "",
+            settings.feature3Title || "",
+            settings.feature3Description || "",
+            settings.feature4Title || "",
+            settings.feature4Description || "",
+            settings.feature5Title || "",
+            settings.feature5Description || "",
+            settings.feature6Title || "",
+            settings.feature6Description || "",
+            settings.ctaTitle || "",
+            settings.ctaDescription || "",
+            settings.backgroundImageLight || "",
+            settings.backgroundImageDark || "",
+          ]
+        );
+        return jsonResponse(200, settings);
+      }
 
-    if (pathParts[0] === "subcategories" && pathParts[1] && method === "DELETE") {
-      const id = pathParts[1];
-      await db`DELETE FROM subcategories WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, { success: true });
+      return jsonResponse(404, { error: "Not found" });
+    } finally {
+      conn.release();
+      pool.end();
     }
-
-    // Plans
-    if (apiPath === "/plans" && method === "GET") {
-      const rows = await db`SELECT * FROM plans`;
-      const plans = rows.map((row: any) => ({
-        ...row,
-        features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
-        popular: Boolean(row.popular),
-      }));
-      await db.end();
-      return jsonResponse(200, plans);
-    }
-
-    if (apiPath === "/plans" && method === "POST") {
-      const { name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId } = body;
-      const id = randomUUID();
-      await db`
-        INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId)
-        VALUES (${id}, ${name}, ${description}, ${priceUsd}, ${priceInr}, ${period}, ${JSON.stringify(features)}, ${popular || false}, ${categoryId}, ${subcategoryId})
-      `;
-      await db.end();
-      return jsonResponse(201, { id, ...body });
-    }
-
-    if (pathParts[0] === "plans" && pathParts[1] && method === "PATCH") {
-      const id = pathParts[1];
-      const { name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId } = body;
-      await db`
-        UPDATE plans SET 
-          name = ${name}, description = ${description}, priceUsd = ${priceUsd}, priceInr = ${priceInr},
-          period = ${period}, features = ${JSON.stringify(features)}, popular = ${popular || false},
-          categoryId = ${categoryId}, subcategoryId = ${subcategoryId}
-        WHERE id = ${id}
-      `;
-      await db.end();
-      return jsonResponse(200, { id, ...body });
-    }
-
-    if (pathParts[0] === "plans" && pathParts[1] && method === "DELETE") {
-      const id = pathParts[1];
-      await db`DELETE FROM plans WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, { success: true });
-    }
-
-    // FAQs
-    if (apiPath === "/faqs" && method === "GET") {
-      const faqs = await db`SELECT * FROM faqs`;
-      await db.end();
-      return jsonResponse(200, faqs);
-    }
-
-    if (apiPath === "/faqs" && method === "POST") {
-      const { question, answer } = body;
-      const id = randomUUID();
-      await db`INSERT INTO faqs (id, question, answer) VALUES (${id}, ${question}, ${answer})`;
-      await db.end();
-      return jsonResponse(201, { id, question, answer });
-    }
-
-    if (pathParts[0] === "faqs" && pathParts[1] && method === "PATCH") {
-      const id = pathParts[1];
-      const { question, answer } = body;
-      await db`UPDATE faqs SET question = ${question}, answer = ${answer} WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, { id, question, answer });
-    }
-
-    if (pathParts[0] === "faqs" && pathParts[1] && method === "DELETE") {
-      const id = pathParts[1];
-      await db`DELETE FROM faqs WHERE id = ${id}`;
-      await db.end();
-      return jsonResponse(200, { success: true });
-    }
-
-    // Settings
-    if (apiPath === "/settings" && method === "GET") {
-      const rows = await db`SELECT * FROM settings WHERE id = 1`;
-      const row = rows[0] || {};
-      await db.end();
-      return jsonResponse(200, {
-        currency: row.currency || "usd",
-        supportLink: row.supportlink || "",
-        redirectLink: row.redirectlink || "",
-        instagramLink: row.instagramlink || "",
-        youtubeLink: row.youtubelink || "",
-        email: row.email || "",
-        documentationLink: row.documentationlink || "",
-        heroTitleLine1: row.herotitleline1 || "Cloud Hosting That",
-        heroTitleLine2: row.herotitleline2 || "Rises Above",
-        heroDescription: row.herodescription || "Experience blazing-fast performance with Phoenix Cloud.",
-        stat1Value: row.stat1value || "99.9%",
-        stat1Label: row.stat1label || "Uptime SLA",
-        stat2Value: row.stat2value || "50+",
-        stat2Label: row.stat2label || "Global Locations",
-        stat3Value: row.stat3value || "24/7",
-        stat3Label: row.stat3label || "Expert Support",
-        featuresSectionTitle: row.featuressectiontitle || "Why Choose Phoenix Cloud?",
-        featuresSectionDescription: row.featuressectiondescription || "Built for performance, reliability, and ease of use.",
-        feature1Title: row.feature1title || "Blazing Fast",
-        feature1Description: row.feature1description || "NVMe SSD storage.",
-        feature2Title: row.feature2title || "DDoS Protection",
-        feature2Description: row.feature2description || "Enterprise-grade protection.",
-        feature3Title: row.feature3title || "Global Network",
-        feature3Description: row.feature3description || "Low latency worldwide.",
-        feature4Title: row.feature4title || "Instant Scaling",
-        feature4Description: row.feature4description || "Scale on demand.",
-        feature5Title: row.feature5title || "24/7 Support",
-        feature5Description: row.feature5description || "Expert support team.",
-        feature6Title: row.feature6title || "99.9% Uptime",
-        feature6Description: row.feature6description || "Industry-leading SLA.",
-        ctaTitle: row.ctatitle || "Ready to Rise Above?",
-        ctaDescription: row.ctadescription || "Get started in minutes.",
-        backgroundImageLight: row.backgroundimagelight || "",
-        backgroundImageDark: row.backgroundimagedark || "",
-      });
-    }
-
-    if (apiPath === "/settings" && method === "POST") {
-      const settings = body;
-      await db`
-        UPDATE settings SET 
-          currency = ${settings.currency || 'usd'},
-          supportlink = ${settings.supportLink || ''},
-          redirectlink = ${settings.redirectLink || ''},
-          instagramlink = ${settings.instagramLink || ''},
-          youtubelink = ${settings.youtubeLink || ''},
-          email = ${settings.email || ''},
-          documentationlink = ${settings.documentationLink || ''},
-          herotitleline1 = ${settings.heroTitleLine1 || ''},
-          herotitleline2 = ${settings.heroTitleLine2 || ''},
-          herodescription = ${settings.heroDescription || ''},
-          stat1value = ${settings.stat1Value || ''},
-          stat1label = ${settings.stat1Label || ''},
-          stat2value = ${settings.stat2Value || ''},
-          stat2label = ${settings.stat2Label || ''},
-          stat3value = ${settings.stat3Value || ''},
-          stat3label = ${settings.stat3Label || ''},
-          featuressectiontitle = ${settings.featuresSectionTitle || ''},
-          featuressectiondescription = ${settings.featuresSectionDescription || ''},
-          feature1title = ${settings.feature1Title || ''},
-          feature1description = ${settings.feature1Description || ''},
-          feature2title = ${settings.feature2Title || ''},
-          feature2description = ${settings.feature2Description || ''},
-          feature3title = ${settings.feature3Title || ''},
-          feature3description = ${settings.feature3Description || ''},
-          feature4title = ${settings.feature4Title || ''},
-          feature4description = ${settings.feature4Description || ''},
-          feature5title = ${settings.feature5Title || ''},
-          feature5description = ${settings.feature5Description || ''},
-          feature6title = ${settings.feature6Title || ''},
-          feature6description = ${settings.feature6Description || ''},
-          ctatitle = ${settings.ctaTitle || ''},
-          ctadescription = ${settings.ctaDescription || ''},
-          backgroundimagelight = ${settings.backgroundImageLight || ''},
-          backgroundimagedark = ${settings.backgroundImageDark || ''}
-        WHERE id = 1
-      `;
-      await db.end();
-      return jsonResponse(200, settings);
-    }
-
-    await db.end();
-    return jsonResponse(404, { error: "Not found", path: apiPath, rawPath: rawPath, method });
   } catch (error: any) {
     console.error("API Error:", error);
-    try { await db.end(); } catch (e) {}
     return jsonResponse(500, { error: error.message || "Internal server error" });
   }
 };
