@@ -33,7 +33,7 @@ export function Footer() {
       { label: "Privacy Policy", href: "/privacy" },
     ],
     social: [
-      { label: "Discord", href: "#", icon: SiDiscord },
+      { label: "Discord", href: settings.redirectLink || "#", icon: SiDiscord },
       { label: "Instagram", href: settings.instagramLink || "#", icon: SiInstagram },
       { label: "YouTube", href: settings.youtubeLink || "#", icon: SiYoutube },
     ],
