@@ -94,6 +94,8 @@ export interface AboutPageContent {
   storyTitle: string;
   storyContent: string;
   yearsExperience: string;
+  storyImage1Url: string;
+  storyImage2Url: string;
   visionTitle: string;
   visionContent: string;
   missionTitle: string;

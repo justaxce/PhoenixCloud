@@ -880,7 +880,7 @@ export default function AdminDashboard() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Story Section</CardTitle>
-                    <CardDescription>Edit the company story section</CardDescription>
+                    <CardDescription>Edit the company story section and images</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -911,6 +911,50 @@ export default function AdminDashboard() {
                         onChange={(e) => setAboutContent({ ...aboutContent, storyContent: e.target.value })}
                         data-testid="input-about-story-content"
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Story Image 1 URL</label>
+                        <Input
+                          placeholder="https://example.com/image1.jpg"
+                          value={aboutContent.storyImage1Url || ""}
+                          onChange={(e) => setAboutContent({ ...aboutContent, storyImage1Url: e.target.value })}
+                          data-testid="input-about-story-image-1"
+                        />
+                        {aboutContent.storyImage1Url && (
+                          <div className="mt-2 border rounded-lg overflow-hidden h-20 bg-muted">
+                            <img
+                              src={aboutContent.storyImage1Url}
+                              alt="Story image 1 preview"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Story Image 2 URL</label>
+                        <Input
+                          placeholder="https://example.com/image2.jpg"
+                          value={aboutContent.storyImage2Url || ""}
+                          onChange={(e) => setAboutContent({ ...aboutContent, storyImage2Url: e.target.value })}
+                          data-testid="input-about-story-image-2"
+                        />
+                        {aboutContent.storyImage2Url && (
+                          <div className="mt-2 border rounded-lg overflow-hidden h-20 bg-muted">
+                            <img
+                              src={aboutContent.storyImage2Url}
+                              alt="Story image 2 preview"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

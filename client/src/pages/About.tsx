@@ -88,10 +88,18 @@ export default function About({ categories = [] }: AboutProps) {
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4 max-w-md">
                   <div className="aspect-square bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center overflow-hidden">
-                    <div className="w-full h-full bg-muted/50" />
+                    {aboutContent.storyImage1Url ? (
+                      <img src={aboutContent.storyImage1Url} alt="Story image 1" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-muted/50" />
+                    )}
                   </div>
                   <div className="aspect-square bg-gradient-to-br from-primary/30 to-primary/10 rounded-lg flex items-center justify-center overflow-hidden">
-                    <div className="w-full h-full bg-primary/20" />
+                    {aboutContent.storyImage2Url ? (
+                      <img src={aboutContent.storyImage2Url} alt="Story image 2" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-primary/20" />
+                    )}
                   </div>
                 </div>
                 <Card className="max-w-md">
