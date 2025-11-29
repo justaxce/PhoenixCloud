@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Mail } from "lucide-react";
+import "react-quill/dist/quill.snow.css";
 import type { AboutPageContent, TeamMember } from "@shared/schema";
 
 interface Category {
@@ -262,7 +263,7 @@ export default function About({ categories = [] }: AboutProps) {
                         </p>
                         {member.description && (
                           <div 
-                            className="mt-2 text-sm text-muted-foreground" 
+                            className="mt-2 text-sm text-muted-foreground ql-editor" 
                             data-testid={`text-member-description-${member.id}`}
                             dangerouslySetInnerHTML={{ __html: member.description }}
                           />
