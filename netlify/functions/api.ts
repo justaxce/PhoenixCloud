@@ -42,6 +42,7 @@ async function query(sql: string, values?: any[]) {
 }
 
 async function ensureTables() {
+  // Categories
   await query(`
     CREATE TABLE IF NOT EXISTS categories (
       id VARCHAR(36) PRIMARY KEY,
@@ -84,6 +85,7 @@ async function ensureTables() {
     )
   `);
 
+  // Settings - with ALTER TABLE to add missing columns
   await query(`
     CREATE TABLE IF NOT EXISTS settings (
       id INT PRIMARY KEY,
@@ -123,6 +125,27 @@ async function ensureTables() {
       backgroundImageDark TEXT
     )
   `);
+
+  // Ensure redirectLink column exists (for tables created before this column was added)
+  try {
+    await query(`ALTER TABLE settings ADD COLUMN redirectLink TEXT`);
+  } catch (e) {
+    // Column already exists, ignore error
+  }
+
+  // Ensure instagramLink column exists
+  try {
+    await query(`ALTER TABLE settings ADD COLUMN instagramLink TEXT`);
+  } catch (e) {
+    // Column already exists, ignore error
+  }
+
+  // Ensure youtubeLink column exists
+  try {
+    await query(`ALTER TABLE settings ADD COLUMN youtubeLink TEXT`);
+  } catch (e) {
+    // Column already exists, ignore error
+  }
 
   await query(`
     CREATE TABLE IF NOT EXISTS admin_users (
