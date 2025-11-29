@@ -5,7 +5,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["mysql2"]
+  external_node_modules = ["serverless-mysql", "mysql"]
 
 # Handle all API routes with the api function
 [[redirects]]
