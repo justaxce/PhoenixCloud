@@ -491,12 +491,12 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full max-w-4xl grid-cols-5">
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="homepage">Homepage</TabsTrigger>
-            <TabsTrigger value="about" data-testid="tab-about-management">About Management</TabsTrigger>
-            <TabsTrigger value="admin">Admin Users</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsList className="grid w-full max-w-4xl grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-1">
+            <TabsTrigger value="settings" className="text-xs md:text-sm">Settings</TabsTrigger>
+            <TabsTrigger value="homepage" className="text-xs md:text-sm">Homepage</TabsTrigger>
+            <TabsTrigger value="about" data-testid="tab-about-management" className="text-xs md:text-sm">About</TabsTrigger>
+            <TabsTrigger value="admin" className="text-xs md:text-sm">Admin</TabsTrigger>
+            <TabsTrigger value="content" className="text-xs md:text-sm">Content</TabsTrigger>
           </TabsList>
 
           <TabsContent value="settings" className="mt-8">
