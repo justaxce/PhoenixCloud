@@ -93,6 +93,28 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
+  // Ctrl+S to save settings
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        updateSettings();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    supportLink, redirectLink, instagramLink, youtubeLink, email, documentationLink,
+    heroTitleLine1, heroTitleLine2, heroDescription,
+    stat1Value, stat1Label, stat2Value, stat2Label, stat3Value, stat3Label,
+    featuresSectionTitle, featuresSectionDescription,
+    feature1Title, feature1Description, feature2Title, feature2Description,
+    feature3Title, feature3Description, feature4Title, feature4Description,
+    feature5Title, feature5Description, feature6Title, feature6Description,
+    ctaTitle, ctaDescription, backgroundImageLight, backgroundImageDark
+  ]);
+
   const loadData = async () => {
     try {
       // Load categories
