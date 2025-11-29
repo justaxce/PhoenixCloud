@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Settings, LogOut, Plus, Trash2, Edit2, Users } from "lucide-react";
-import type { Category, Subcategory, Plan, Settings as SettingsType } from "@shared/schema";
+import type { Category, Subcategory, Plan, Settings as SettingsType, AboutPageContent, TeamMember } from "@shared/schema";
 import {
   AddCategoryDialog,
   AddSubcategoryDialog,
@@ -38,6 +38,11 @@ export default function AdminDashboard() {
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [adminUsers, setAdminUsers] = useState<Array<{ id: string; username: string }>>([]);
   const [settings, setSettings] = useState<SettingsType>({ currency: "usd", supportLink: "", redirectLink: "" });
+  const [aboutContent, setAboutContent] = useState<AboutPageContent | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | null>(null);
+  const [showTeamMemberForm, setShowTeamMemberForm] = useState(false);
+  const [teamMemberForm, setTeamMemberForm] = useState({ name: "", role: "", imageUrl: "", order: 0 });
 
   const [supportLink, setSupportLink] = useState("");
   const [redirectLink, setRedirectLink] = useState("");
@@ -191,6 +196,20 @@ export default function AdminDashboard() {
         const users = await usersRes.json();
         setAdminUsers(Array.isArray(users) ? users : []);
       }
+      
+      // Load about page content
+      const aboutRes = await fetch("/api/about");
+      if (aboutRes.ok) {
+        const about = await aboutRes.json();
+        setAboutContent(about);
+      }
+      
+      // Load team members
+      const teamRes = await fetch("/api/team-members");
+      if (teamRes.ok) {
+        const team = await teamRes.json();
+        setTeamMembers(Array.isArray(team) ? team : []);
+      }
     } catch (error) {
       console.error("Failed to load data:", error);
       toast({ title: "Error loading data", variant: "destructive" });
@@ -258,6 +277,85 @@ export default function AdminDashboard() {
     setShowDeleteDialog(true);
   };
 
+  const updateAboutContent = async (updates: Partial<AboutPageContent>) => {
+    try {
+      const updatedContent = { ...aboutContent, ...updates };
+      const res = await fetch("/api/about", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedContent),
+      });
+      if (res.ok) {
+        setAboutContent(await res.json());
+        toast({ title: "About page updated successfully" });
+      } else {
+        toast({ title: "Error updating about page", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Error updating about page", variant: "destructive" });
+    }
+  };
+
+  const handleSaveTeamMember = async () => {
+    try {
+      if (editingTeamMember) {
+        const res = await fetch(`/api/team-members/${editingTeamMember.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(teamMemberForm),
+        });
+        if (res.ok) {
+          toast({ title: "Team member updated successfully" });
+          loadData();
+        }
+      } else {
+        const res = await fetch("/api/team-members", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(teamMemberForm),
+        });
+        if (res.ok) {
+          toast({ title: "Team member added successfully" });
+          loadData();
+        }
+      }
+      setShowTeamMemberForm(false);
+      setEditingTeamMember(null);
+      setTeamMemberForm({ name: "", role: "", imageUrl: "", order: 0 });
+    } catch (error) {
+      toast({ title: "Error saving team member", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteTeamMember = async (id: string) => {
+    try {
+      const res = await fetch(`/api/team-members/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast({ title: "Team member deleted successfully" });
+        loadData();
+      }
+    } catch (error) {
+      toast({ title: "Error deleting team member", variant: "destructive" });
+    }
+  };
+
+  const openEditTeamMember = (member: TeamMember) => {
+    setEditingTeamMember(member);
+    setTeamMemberForm({
+      name: member.name,
+      role: member.role,
+      imageUrl: member.imageUrl || "",
+      order: member.order || 0,
+    });
+    setShowTeamMemberForm(true);
+  };
+
+  const openAddTeamMember = () => {
+    setEditingTeamMember(null);
+    setTeamMemberForm({ name: "", role: "", imageUrl: "", order: teamMembers.length });
+    setShowTeamMemberForm(true);
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
 
@@ -314,9 +412,10 @@ export default function AdminDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full max-w-3xl grid-cols-4">
+          <TabsList className="grid w-full max-w-4xl grid-cols-5">
             <TabsTrigger value="settings">Settings</TabsTrigger>
             <TabsTrigger value="homepage">Homepage</TabsTrigger>
+            <TabsTrigger value="about" data-testid="tab-about-management">About Management</TabsTrigger>
             <TabsTrigger value="admin">Admin Users</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
           </TabsList>
@@ -688,6 +787,420 @@ export default function AdminDashboard() {
             <Button onClick={updateSettings} className="w-full" data-testid="button-save-homepage">
               Save Homepage Content
             </Button>
+          </TabsContent>
+
+          <TabsContent value="about" className="mt-8 space-y-6">
+            {aboutContent && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Hero Section</CardTitle>
+                    <CardDescription>Edit the About page hero section</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Hero Title</label>
+                        <Input
+                          placeholder="This is our story"
+                          value={aboutContent.heroTitle}
+                          onChange={(e) => setAboutContent({ ...aboutContent, heroTitle: e.target.value })}
+                          data-testid="input-about-hero-title"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Hero Subtitle</label>
+                        <Input
+                          placeholder="About us"
+                          value={aboutContent.heroSubtitle}
+                          onChange={(e) => setAboutContent({ ...aboutContent, heroSubtitle: e.target.value })}
+                          data-testid="input-about-hero-subtitle"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Hero Background Image URL</label>
+                      <Input
+                        placeholder="https://example.com/hero-image.jpg"
+                        value={aboutContent.heroImageUrl || ""}
+                        onChange={(e) => setAboutContent({ ...aboutContent, heroImageUrl: e.target.value })}
+                        data-testid="input-about-hero-image"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Company Information</CardTitle>
+                    <CardDescription>Edit company details displayed on the About page</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Company Name</label>
+                        <Input
+                          placeholder="Phoenix Cloud"
+                          value={aboutContent.companyName}
+                          onChange={(e) => setAboutContent({ ...aboutContent, companyName: e.target.value })}
+                          data-testid="input-about-company-name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Support Email</label>
+                        <Input
+                          placeholder="support@phoenixcloud.com"
+                          value={aboutContent.supportEmail || ""}
+                          onChange={(e) => setAboutContent({ ...aboutContent, supportEmail: e.target.value })}
+                          data-testid="input-about-email"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Company Description</label>
+                      <Input
+                        placeholder="Web & Game Hosting Business..."
+                        value={aboutContent.companyDescription}
+                        onChange={(e) => setAboutContent({ ...aboutContent, companyDescription: e.target.value })}
+                        data-testid="input-about-company-description"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Company Address</label>
+                      <Input
+                        placeholder="123 Cloud Street, Server City"
+                        value={aboutContent.companyAddress || ""}
+                        onChange={(e) => setAboutContent({ ...aboutContent, companyAddress: e.target.value })}
+                        data-testid="input-about-address"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Story Section</CardTitle>
+                    <CardDescription>Edit the company story section</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Story Title</label>
+                        <Input
+                          placeholder="The beginning"
+                          value={aboutContent.storyTitle}
+                          onChange={(e) => setAboutContent({ ...aboutContent, storyTitle: e.target.value })}
+                          data-testid="input-about-story-title"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Years Experience</label>
+                        <Input
+                          placeholder="1"
+                          value={aboutContent.yearsExperience}
+                          onChange={(e) => setAboutContent({ ...aboutContent, yearsExperience: e.target.value })}
+                          data-testid="input-about-years"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Story Content</label>
+                      <Input
+                        placeholder="Phoenix Cloud started with a simple goal..."
+                        value={aboutContent.storyContent}
+                        onChange={(e) => setAboutContent({ ...aboutContent, storyContent: e.target.value })}
+                        data-testid="input-about-story-content"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Vision & Mission</CardTitle>
+                    <CardDescription>Edit your company vision and mission statements</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Vision Title</label>
+                        <Input
+                          placeholder="Our Vision"
+                          value={aboutContent.visionTitle}
+                          onChange={(e) => setAboutContent({ ...aboutContent, visionTitle: e.target.value })}
+                          data-testid="input-about-vision-title"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Mission Title</label>
+                        <Input
+                          placeholder="Our Mission"
+                          value={aboutContent.missionTitle}
+                          onChange={(e) => setAboutContent({ ...aboutContent, missionTitle: e.target.value })}
+                          data-testid="input-about-mission-title"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Vision Content</label>
+                      <Input
+                        placeholder="Our vision is to provide the most reliable..."
+                        value={aboutContent.visionContent}
+                        onChange={(e) => setAboutContent({ ...aboutContent, visionContent: e.target.value })}
+                        data-testid="input-about-vision-content"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Mission Content</label>
+                      <Input
+                        placeholder="Our mission is to deliver the best..."
+                        value={aboutContent.missionContent}
+                        onChange={(e) => setAboutContent({ ...aboutContent, missionContent: e.target.value })}
+                        data-testid="input-about-mission-content"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Team Section</CardTitle>
+                    <CardDescription>Edit the team section header</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Team Section Title</label>
+                        <Input
+                          placeholder="Behind the scene"
+                          value={aboutContent.teamSectionTitle}
+                          onChange={(e) => setAboutContent({ ...aboutContent, teamSectionTitle: e.target.value })}
+                          data-testid="input-about-team-title"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Team Section Subtitle</label>
+                        <Input
+                          placeholder="Our solid team"
+                          value={aboutContent.teamSectionSubtitle}
+                          onChange={(e) => setAboutContent({ ...aboutContent, teamSectionSubtitle: e.target.value })}
+                          data-testid="input-about-team-subtitle"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Statistics</CardTitle>
+                    <CardDescription>Edit the statistics displayed at the bottom of the About page</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 1 Value</label>
+                        <Input
+                          placeholder="150"
+                          value={aboutContent.stat1Value}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat1Value: e.target.value })}
+                          data-testid="input-about-stat1-value"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 1 Label</label>
+                        <Input
+                          placeholder="Happy Clients"
+                          value={aboutContent.stat1Label}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat1Label: e.target.value })}
+                          data-testid="input-about-stat1-label"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 2 Value</label>
+                        <Input
+                          placeholder="300"
+                          value={aboutContent.stat2Value}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat2Value: e.target.value })}
+                          data-testid="input-about-stat2-value"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 2 Label</label>
+                        <Input
+                          placeholder="Servers Ordered"
+                          value={aboutContent.stat2Label}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat2Label: e.target.value })}
+                          data-testid="input-about-stat2-label"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 3 Value</label>
+                        <Input
+                          placeholder="10"
+                          value={aboutContent.stat3Value}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat3Value: e.target.value })}
+                          data-testid="input-about-stat3-value"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 3 Label</label>
+                        <Input
+                          placeholder="Awards Winning"
+                          value={aboutContent.stat3Label}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat3Label: e.target.value })}
+                          data-testid="input-about-stat3-label"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 4 Value</label>
+                        <Input
+                          placeholder="1"
+                          value={aboutContent.stat4Value}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat4Value: e.target.value })}
+                          data-testid="input-about-stat4-value"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Stat 4 Label</label>
+                        <Input
+                          placeholder="Years Experience"
+                          value={aboutContent.stat4Label}
+                          onChange={(e) => setAboutContent({ ...aboutContent, stat4Label: e.target.value })}
+                          data-testid="input-about-stat4-label"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Button onClick={() => updateAboutContent(aboutContent)} className="w-full" data-testid="button-save-about">
+                  Save About Page Content
+                </Button>
+              </>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Team Members ({teamMembers.length})
+                </CardTitle>
+                <CardDescription>Manage team members displayed on the About page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 mb-4">
+                  {teamMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover-elevate"
+                      data-testid={`item-team-member-${member.id}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {member.imageUrl ? (
+                          <img src={member.imageUrl} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <span className="font-bold text-primary">{member.name.charAt(0)}</span>
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium">{member.name}</p>
+                          <p className="text-xs text-muted-foreground">{member.role}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditTeamMember(member)}
+                          data-testid={`button-edit-team-member-${member.id}`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteTeamMember(member.id)}
+                          data-testid={`button-delete-team-member-${member.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={openAddTeamMember} className="w-full" data-testid="button-add-team-member">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Team Member
+                </Button>
+              </CardContent>
+            </Card>
+
+            {showTeamMemberForm && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{editingTeamMember ? "Edit Team Member" : "Add Team Member"}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Name</label>
+                    <Input
+                      placeholder="John Doe"
+                      value={teamMemberForm.name}
+                      onChange={(e) => setTeamMemberForm({ ...teamMemberForm, name: e.target.value })}
+                      data-testid="input-team-member-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Role</label>
+                    <Input
+                      placeholder="CEO & Founder"
+                      value={teamMemberForm.role}
+                      onChange={(e) => setTeamMemberForm({ ...teamMemberForm, role: e.target.value })}
+                      data-testid="input-team-member-role"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Image URL</label>
+                    <Input
+                      placeholder="https://example.com/avatar.jpg"
+                      value={teamMemberForm.imageUrl}
+                      onChange={(e) => setTeamMemberForm({ ...teamMemberForm, imageUrl: e.target.value })}
+                      data-testid="input-team-member-image"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Display Order</label>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={teamMemberForm.order}
+                      onChange={(e) => setTeamMemberForm({ ...teamMemberForm, order: parseInt(e.target.value) || 0 })}
+                      data-testid="input-team-member-order"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveTeamMember} data-testid="button-save-team-member">
+                      {editingTeamMember ? "Update" : "Add"} Team Member
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setShowTeamMemberForm(false);
+                      setEditingTeamMember(null);
+                      setTeamMemberForm({ name: "", role: "", imageUrl: "", order: 0 });
+                    }} data-testid="button-cancel-team-member">
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="admin" className="mt-8">

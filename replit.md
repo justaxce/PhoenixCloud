@@ -42,19 +42,32 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 
-**Primary Storage**: JSON file-based system (`data.json`)
-- Stores categories, subcategories, plans, settings, and admin users
-- In-memory caching with file system persistence
-- Custom `JsonStorage` class implementing `IStorage` interface
+**Primary Storage**: MySQL Database (External)
+- Connected to external MySQL server at panel.sriyannodes.cloud
+- Stores categories, subcategories, plans, settings, admin users, about page content, and team members
+- Custom `MySQLStorage` class implementing `IStorage` interface
+- Database tables created automatically on initialization
 
-**Database Schema** (configured but not actively used):
-- Drizzle ORM configured for PostgreSQL via Neon serverless
-- Migration setup present in `drizzle.config.ts`
-- Schema definitions in `shared/schema.ts`
+**Database Tables**:
+- `categories` - Hosting plan categories
+- `subcategories` - Sub-categories within each category
+- `plans` - Individual hosting plans with pricing
+- `settings` - Site-wide configuration (links, hero content, features)
+- `admin_users` - Admin panel user accounts
+- `faqs` - Frequently asked questions
+- `about_page_content` - About page text content and settings
+- `team_members` - Team member profiles for About page
 
-**Rationale**: JSON storage chosen for simplicity and portability, suitable for a content-focused application with moderate data complexity. The IStorage interface allows easy migration to PostgreSQL when scale requires it, without changing application code.
+**Schema Configuration**:
+- Drizzle Zod schemas in `shared/schema.ts` for validation
+- Type definitions for all data models
 
-**Migration Path**: The application is architected to support PostgreSQL through Drizzle ORM. The storage interface abstraction means switching from JSON to database persistence requires only implementing the interface with database operations.
+**Database Configuration**:
+- Connection uses environment variables when available
+- Fallback to configured MySQL credentials for external database
+- Connection pooling with automatic reconnection
+
+**Rationale**: MySQL database provides reliable persistent storage for the application data. The external database hosting allows for independent database management and scaling.
 
 ### Authentication & Authorization
 
@@ -104,3 +117,19 @@ Preferred communication style: Simple, everyday language.
 - Production build outputs to `dist/` with separate public and server bundles
 
 **Rationale**: Modern tooling choices prioritize developer experience and performance. Vite provides fast HMR, while the component library ensures consistency and accessibility. External service integration via Discord aligns with the target audience (tech-savvy hosting customers).
+
+## Recent Changes
+
+### About Us Page (November 2025)
+- Added new About Us page accessible via /about route
+- Page includes hero section, company info, story section, vision/mission, team members display, and statistics
+- All content is fully manageable through the Admin Dashboard
+- Admin panel includes "About Management" tab for editing:
+  - Hero section (title, subtitle, background image)
+  - Company information (name, description, address, email)
+  - Story section with years of experience
+  - Vision and mission statements
+  - Team section titles
+  - Four statistics with customizable values and labels
+  - Team member management (add, edit, delete with name, role, image, order)
+- Navigation updated to include About Us link between Plans and Support
