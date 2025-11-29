@@ -11,6 +11,7 @@ export interface Subcategory {
   name: string;
   slug: string;
   categoryId: string;
+  order: number;
 }
 
 export interface Plan {
@@ -24,6 +25,7 @@ export interface Plan {
   popular?: boolean;
   categoryId: string;
   subcategoryId: string;
+  order: number;
 }
 
 export interface FAQ {
@@ -122,6 +124,7 @@ export const subcategorySchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   categoryId: z.string().min(1),
+  order: z.number().optional(),
 });
 
 export const planSchema = z.object({
@@ -134,6 +137,7 @@ export const planSchema = z.object({
   popular: z.boolean().optional(),
   categoryId: z.string().min(1),
   subcategoryId: z.string().min(1),
+  order: z.number().optional(),
 });
 
 export const faqSchema = z.object({

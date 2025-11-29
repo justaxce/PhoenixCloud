@@ -135,9 +135,20 @@ export class MySQLStorage implements IStorage {
           name VARCHAR(255) NOT NULL,
           slug VARCHAR(255) NOT NULL UNIQUE,
           categoryId VARCHAR(36) NOT NULL,
+          \`order\` INT DEFAULT 0,
           FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
         )
       `);
+
+      // Add order column if it doesn't exist (for existing databases)
+      try {
+        await conn.query("ALTER TABLE subcategories ADD COLUMN \`order\` INT DEFAULT 0");
+        console.log("✅ order column added to subcategories");
+      } catch (e: any) {
+        if (e.code !== 'ER_DUP_FIELDNAME') {
+          console.log("✅ order column already exists in subcategories");
+        }
+      }
 
       await conn.query(`
         CREATE TABLE IF NOT EXISTS plans (
@@ -151,10 +162,21 @@ export class MySQLStorage implements IStorage {
           popular BOOLEAN DEFAULT FALSE,
           categoryId VARCHAR(36),
           subcategoryId VARCHAR(36),
+          \`order\` INT DEFAULT 0,
           FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE SET NULL,
           FOREIGN KEY (subcategoryId) REFERENCES subcategories(id) ON DELETE SET NULL
         )
       `);
+
+      // Add order column if it doesn't exist (for existing databases)
+      try {
+        await conn.query("ALTER TABLE plans ADD COLUMN \`order\` INT DEFAULT 0");
+        console.log("✅ order column added to plans");
+      } catch (e: any) {
+        if (e.code !== 'ER_DUP_FIELDNAME') {
+          console.log("✅ order column already exists in plans");
+        }
+      }
 
       await conn.query(`
         CREATE TABLE IF NOT EXISTS faqs (
@@ -358,33 +380,35 @@ export class MySQLStorage implements IStorage {
   async getSubcategories(): Promise<Subcategory[]> {
     await this.initializeDatabase();
     const pool = this.getPool();
-    const [rows] = await pool.query("SELECT * FROM subcategories");
+    const [rows] = await pool.query("SELECT * FROM subcategories ORDER BY `order` ASC, id ASC");
     return rows as Subcategory[];
   }
 
   async getSubcategoriesByCategory(categoryId: string): Promise<Subcategory[]> {
     await this.initializeDatabase();
     const pool = this.getPool();
-    const [rows] = await pool.query("SELECT * FROM subcategories WHERE categoryId = ?", [categoryId]);
+    const [rows] = await pool.query("SELECT * FROM subcategories WHERE categoryId = ? ORDER BY `order` ASC, id ASC", [categoryId]);
     return rows as Subcategory[];
   }
 
-  async createSubcategory(name: string, slug: string, categoryId: string): Promise<Subcategory> {
+  async createSubcategory(name: string, slug: string, categoryId: string, order: number = 0): Promise<Subcategory> {
     await this.initializeDatabase();
     const pool = this.getPool();
     const id = randomUUID();
-    await pool.query("INSERT INTO subcategories (id, name, slug, categoryId) VALUES (?, ?, ?, ?)", [id, name, slug, categoryId]);
-    return { id, name, slug, categoryId };
+    await pool.query("INSERT INTO subcategories (id, name, slug, categoryId, `order`) VALUES (?, ?, ?, ?, ?)", [id, name, slug, categoryId, order]);
+    return { id, name, slug, categoryId, order };
   }
 
-  async updateSubcategory(id: string, name: string, slug: string): Promise<Subcategory | undefined> {
+  async updateSubcategory(id: string, name: string, slug: string, order?: number): Promise<Subcategory | undefined> {
     await this.initializeDatabase();
     const pool = this.getPool();
-    const [existing] = await pool.query("SELECT categoryId FROM subcategories WHERE id = ?", [id]);
+    const [existing] = await pool.query("SELECT categoryId, `order` FROM subcategories WHERE id = ?", [id]);
     if (!Array.isArray(existing) || existing.length === 0) return undefined;
     const categoryId = (existing[0] as any).categoryId;
-    await pool.query("UPDATE subcategories SET name = ?, slug = ? WHERE id = ?", [name, slug, id]);
-    return { id, name, slug, categoryId };
+    const currentOrder = (existing[0] as any).order || 0;
+    const newOrder = order !== undefined ? order : currentOrder;
+    await pool.query("UPDATE subcategories SET name = ?, slug = ?, `order` = ? WHERE id = ?", [name, slug, newOrder, id]);
+    return { id, name, slug, categoryId, order: newOrder };
   }
 
   async deleteSubcategory(id: string): Promise<boolean> {
@@ -397,7 +421,7 @@ export class MySQLStorage implements IStorage {
   async getPlans(): Promise<Plan[]> {
     await this.initializeDatabase();
     const pool = this.getPool();
-    const [rows] = await pool.query("SELECT * FROM plans");
+    const [rows] = await pool.query("SELECT * FROM plans ORDER BY `order` ASC, id ASC");
     return (rows as any[]).map((row) => ({
       ...row,
       features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
@@ -408,7 +432,7 @@ export class MySQLStorage implements IStorage {
   async getPlansBySubcategory(subcategoryId: string): Promise<Plan[]> {
     await this.initializeDatabase();
     const pool = this.getPool();
-    const [rows] = await pool.query("SELECT * FROM plans WHERE subcategoryId = ?", [subcategoryId]);
+    const [rows] = await pool.query("SELECT * FROM plans WHERE subcategoryId = ? ORDER BY `order` ASC, id ASC", [subcategoryId]);
     return (rows as any[]).map((row) => ({
       ...row,
       features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
