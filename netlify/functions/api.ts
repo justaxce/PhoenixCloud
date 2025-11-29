@@ -10,14 +10,18 @@ function hashPassword(password: string): string {
 
 function getConnection() {
   const connectionString = process.env.DATABASE_URL;
+  console.log("[DB] DATABASE_URL exists:", !!connectionString);
+  
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable not set");
   }
   
+  console.log("[DB] Connecting to PostgreSQL...");
   return postgres(connectionString, {
     max: 1,
-    idle_timeout: 20,
-    connect_timeout: 10,
+    idle_timeout: 30,
+    connect_timeout: 30,
+    statement_timeout: 30000,
     ssl: { rejectUnauthorized: false }
   });
 }
@@ -197,8 +201,10 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
   let sql: any = null;
   
   try {
+    console.log(`[API] ${method} ${apiPath}`);
     sql = getConnection();
     await initializeDatabase(sql);
+    console.log("[DB] Database initialized successfully");
 
     // Admin Login
     if (apiPath === "/admin/login" && method === "POST") {
