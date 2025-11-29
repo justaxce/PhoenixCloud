@@ -101,7 +101,7 @@ export class MySQLStorage implements IStorage {
         queueLimit: 0,
         connectTimeout: 10000,
         enableKeepAlive: true,
-        keepAliveInitialDelayMs: 30000,
+        keepAliveInitialDelay: 30000,
       });
     }
     return this.pool;
@@ -217,10 +217,21 @@ export class MySQLStorage implements IStorage {
           id VARCHAR(36) PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
           role VARCHAR(255) NOT NULL,
+          description TEXT,
           imageUrl TEXT,
           \`order\` INT DEFAULT 0
         )
       `);
+
+      // Add description column if it doesn't exist (for existing databases)
+      try {
+        await conn.query("ALTER TABLE team_members ADD COLUMN description TEXT AFTER role");
+        console.log("✅ description column added to team_members");
+      } catch (e: any) {
+        if (e.code !== 'ER_DUP_FIELDNAME') {
+          console.log("✅ description column already exists in team_members");
+        }
+      }
 
       await conn.query(`
         CREATE TABLE IF NOT EXISTS about_page_content (
@@ -626,7 +637,7 @@ export class MySQLStorage implements IStorage {
     await this.initializeDatabase();
     const pool = this.getPool();
     const id = randomUUID();
-    await pool.query("INSERT INTO team_members (id, name, role, imageUrl, `order`) VALUES (?, ?, ?, ?, ?)", [id, member.name, member.role, member.imageUrl || "", member.order || 0]);
+    await pool.query("INSERT INTO team_members (id, name, role, description, imageUrl, `order`) VALUES (?, ?, ?, ?, ?, ?)", [id, member.name, member.role, member.description || "", member.imageUrl || "", member.order || 0]);
     return { id, ...member };
   }
 
@@ -640,11 +651,12 @@ export class MySQLStorage implements IStorage {
     const updated = {
       name: updates.name || current.name,
       role: updates.role || current.role,
+      description: updates.description !== undefined ? updates.description : current.description,
       imageUrl: updates.imageUrl !== undefined ? updates.imageUrl : current.imageUrl,
       order: updates.order !== undefined ? updates.order : current.order,
     };
     
-    await pool.query("UPDATE team_members SET name = ?, role = ?, imageUrl = ?, `order` = ? WHERE id = ?", [updated.name, updated.role, updated.imageUrl, updated.order, id]);
+    await pool.query("UPDATE team_members SET name = ?, role = ?, description = ?, imageUrl = ?, `order` = ? WHERE id = ?", [updated.name, updated.role, updated.description, updated.imageUrl, updated.order, id]);
     return { id, ...updated };
   }
 

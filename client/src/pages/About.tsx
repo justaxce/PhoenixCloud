@@ -206,17 +206,13 @@ export default function About({ categories = [] }: AboutProps) {
                 <h3 className="text-xl md:text-2xl font-bold mb-4" data-testid="text-vision-title">
                   {aboutContent.visionTitle}
                 </h3>
-                <p className="text-muted-foreground" data-testid="text-vision-content">
-                  {aboutContent.visionContent}
-                </p>
+                <div className="text-muted-foreground" data-testid="text-vision-content" dangerouslySetInnerHTML={{ __html: aboutContent.visionContent }} />
               </Card>
               <Card className="p-6 md:p-8">
                 <h3 className="text-xl md:text-2xl font-bold mb-4" data-testid="text-mission-title">
                   {aboutContent.missionTitle}
                 </h3>
-                <p className="text-muted-foreground" data-testid="text-mission-content">
-                  {aboutContent.missionContent}
-                </p>
+                <div className="text-muted-foreground" data-testid="text-mission-content" dangerouslySetInnerHTML={{ __html: aboutContent.missionContent }} />
               </Card>
             </div>
           </div>
@@ -264,6 +260,13 @@ export default function About({ categories = [] }: AboutProps) {
                         <p className="text-sm text-muted-foreground" data-testid={`text-member-role-${member.id}`}>
                           {member.role}
                         </p>
+                        {member.description && (
+                          <div 
+                            className="mt-2 text-sm text-muted-foreground" 
+                            data-testid={`text-member-description-${member.id}`}
+                            dangerouslySetInnerHTML={{ __html: member.description }}
+                          />
+                        )}
                       </div>
                     </CardContent>
                   </Card>

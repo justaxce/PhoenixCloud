@@ -399,7 +399,7 @@ export default function AdminDashboard() {
       }
       setShowTeamMemberForm(false);
       setEditingTeamMember(null);
-      setTeamMemberForm({ name: "", role: "", imageUrl: "", order: 0 });
+      setTeamMemberForm({ name: "", role: "", description: "", imageUrl: "", order: 0 });
     } catch (error) {
       toast({ title: "Error saving team member", variant: "destructive" });
     }
@@ -422,6 +422,7 @@ export default function AdminDashboard() {
     setTeamMemberForm({
       name: member.name,
       role: member.role,
+      description: member.description || "",
       imageUrl: member.imageUrl || "",
       order: member.order || 0,
     });
@@ -430,7 +431,7 @@ export default function AdminDashboard() {
 
   const openAddTeamMember = () => {
     setEditingTeamMember(null);
-    setTeamMemberForm({ name: "", role: "", imageUrl: "", order: teamMembers.length });
+    setTeamMemberForm({ name: "", role: "", description: "", imageUrl: "", order: teamMembers.length });
     setShowTeamMemberForm(true);
   };
 
@@ -644,7 +645,7 @@ export default function AdminDashboard() {
                   <RichTextEditor
                     placeholder="Experience blazing-fast performance..."
                     value={heroDescription}
-                    onChange={setHeroDescription}
+                    onChange={(value) => setHeroDescription(value)}
                     data-testid="input-hero-description"
                   />
                 </div>
@@ -741,7 +742,7 @@ export default function AdminDashboard() {
                     <RichTextEditor
                       placeholder="Built for performance, reliability, and ease of use."
                       value={featuresSectionDescription}
-                      onChange={setFeaturesSectionDescription}
+                      onChange={(value) => setFeaturesSectionDescription(value)}
                       data-testid="input-features-description"
                     />
                   </div>
@@ -771,7 +772,7 @@ export default function AdminDashboard() {
                           <label className="text-sm font-medium">Feature {feature.num} Description</label>
                           <RichTextEditor
                             value={feature.desc}
-                            onChange={feature.setDesc}
+                            onChange={(value) => feature.setDesc(value)}
                             data-testid={`input-feature${feature.num}-desc`}
                           />
                         </div>
@@ -802,7 +803,7 @@ export default function AdminDashboard() {
                   <RichTextEditor
                     placeholder="Join thousands of satisfied customers..."
                     value={ctaDescription}
-                    onChange={setCtaDescription}
+                    onChange={(value) => setCtaDescription(value)}
                     data-testid="input-cta-description"
                   />
                 </div>
@@ -986,7 +987,7 @@ export default function AdminDashboard() {
                       <RichTextEditor
                         placeholder="Phoenix Cloud started with a simple goal..."
                         value={aboutContent.storyContent}
-                        onChange={(value) => setAboutContent({ ...aboutContent, storyContent: value })}
+                        onChange={(value) => handleAboutContentChange("storyContent", value)}
                         data-testid="input-about-story-content"
                       />
                     </div>
@@ -1068,7 +1069,7 @@ export default function AdminDashboard() {
                       <RichTextEditor
                         placeholder="Our vision is to provide the most reliable..."
                         value={aboutContent.visionContent}
-                        onChange={(value) => setAboutContent({ ...aboutContent, visionContent: value })}
+                        onChange={(value) => handleAboutContentChange("visionContent", value)}
                         data-testid="input-about-vision-content"
                       />
                     </div>
@@ -1077,7 +1078,7 @@ export default function AdminDashboard() {
                       <RichTextEditor
                         placeholder="Our mission is to deliver the best..."
                         value={aboutContent.missionContent}
-                        onChange={(value) => setAboutContent({ ...aboutContent, missionContent: value })}
+                        onChange={(value) => handleAboutContentChange("missionContent", value)}
                         data-testid="input-about-mission-content"
                       />
                     </div>
@@ -1290,6 +1291,15 @@ export default function AdminDashboard() {
                     />
                   </div>
                   <div className="space-y-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <RichTextEditor
+                      placeholder="Brief description about this team member..."
+                      value={teamMemberForm.description}
+                      onChange={(value) => setTeamMemberForm({ ...teamMemberForm, description: value })}
+                      data-testid="input-team-member-description"
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <label className="text-sm font-medium">Image URL</label>
                     <Input
                       placeholder="https://example.com/avatar.jpg"
@@ -1315,7 +1325,7 @@ export default function AdminDashboard() {
                     <Button variant="outline" onClick={() => {
                       setShowTeamMemberForm(false);
                       setEditingTeamMember(null);
-                      setTeamMemberForm({ name: "", role: "", imageUrl: "", order: 0 });
+                      setTeamMemberForm({ name: "", role: "", description: "", imageUrl: "", order: 0 });
                     }} data-testid="button-cancel-team-member">
                       Cancel
                     </Button>
