@@ -41,9 +41,10 @@ export function Header({ categories = [] }: HeaderProps) {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/plans", label: "Plans" },
+    { href: "/about", label: "About Us" },
     { href: "/support", label: "Support" },
-    { href: "/terms", label: "Terms of service" },
-    { href: "/privacy", label: "Privacy policy" },
+    { href: "/terms", label: "Terms" },
+    { href: "/privacy", label: "Privacy" },
   ];
 
   const isActive = (path: string) => location === path;

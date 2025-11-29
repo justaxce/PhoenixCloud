@@ -14,6 +14,7 @@ import { GlobalBackground } from "@/components/GlobalBackground";
 // Pages
 import Home from "@/pages/Home";
 import Plans from "@/pages/Plans";
+import About from "@/pages/About";
 import Support from "@/pages/Support";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/plans" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
       <Route path="/plans/:categorySlug" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
       <Route path="/plans/:categorySlug/:subcategorySlug" component={() => <Plans categories={categories} plans={plans} redirectLink={settings.redirectLink} />} />
+      <Route path="/about" component={() => <About categories={categories} />} />
       <Route path="/support" component={() => <Support categories={categories} discordLink={settings.supportLink} />} />
       <Route path="/terms" component={() => <Terms categories={categories} />} />
       <Route path="/privacy" component={() => <Privacy categories={categories} />} />
