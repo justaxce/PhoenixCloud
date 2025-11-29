@@ -55,7 +55,10 @@ export function PlanCard({ plan, redirectLink = "#" }: PlanCardProps) {
       
       <CardHeader className="pb-4">
         <h3 className="text-xl font-semibold">{plan.name}</h3>
-        <p className="text-sm text-muted-foreground">{plan.description}</p>
+        <div
+          className="text-sm text-muted-foreground"
+          dangerouslySetInnerHTML={{ __html: plan.description }}
+        />
       </CardHeader>
       
       <CardContent className="flex-1">

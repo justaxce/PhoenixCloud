@@ -257,7 +257,12 @@ export function AddSubcategoryDialog({
               type="number"
               placeholder="0"
               value={order}
-              onChange={(e) => setOrder(Number(e.target.value))}
+              onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                }
+              }}
               data-testid="input-subcategory-order"
             />
             <p className="text-xs text-muted-foreground mt-1">Lower numbers display first</p>
@@ -509,7 +514,12 @@ export function AddPlanDialog({
               type="number"
               placeholder="0"
               value={order}
-              onChange={(e) => setOrder(Number(e.target.value))}
+              onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                }
+              }}
               data-testid="input-plan-order"
             />
             <p className="text-xs text-muted-foreground mt-1">Lower numbers display first</p>
