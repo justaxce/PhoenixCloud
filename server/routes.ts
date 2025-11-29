@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { categorySchema, subcategorySchema, planSchema, settingsSchema, faqSchema } from "@shared/schema";
+import { categorySchema, subcategorySchema, planSchema, settingsSchema, faqSchema, teamMemberSchema, aboutPageSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -313,6 +313,104 @@ export async function registerRoutes(
       res.json(updated);
     } catch (error: any) {
       console.error("Settings error:", error.message);
+      if (error.message.includes("validation")) {
+        res.status(400).json({ error: "Invalid input" });
+      } else {
+        res.status(503).json({ error: "Database temporarily unavailable" });
+      }
+    }
+  });
+
+  // Team Members
+  app.get("/api/team-members", async (req, res) => {
+    try {
+      const members = await storage.getTeamMembers();
+      res.json(members);
+    } catch (error: any) {
+      console.error("Error fetching team members:", error.message);
+      res.status(503).json([]);
+    }
+  });
+
+  app.post("/api/team-members", async (req, res) => {
+    try {
+      const member = teamMemberSchema.parse(req.body);
+      const created = await storage.createTeamMember({
+        name: member.name,
+        role: member.role,
+        imageUrl: member.imageUrl || "",
+        order: member.order || 0,
+      });
+      res.status(201).json(created);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid input" });
+    }
+  });
+
+  app.patch("/api/team-members/:id", async (req, res) => {
+    try {
+      const member = teamMemberSchema.parse(req.body);
+      const updated = await storage.updateTeamMember(req.params.id, member);
+      if (updated) {
+        res.json(updated);
+      } else {
+        res.status(404).json({ error: "Team member not found" });
+      }
+    } catch (error) {
+      res.status(400).json({ error: "Invalid input" });
+    }
+  });
+
+  app.delete("/api/team-members/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteTeamMember(req.params.id);
+      res.json({ success });
+    } catch (error: any) {
+      console.error("Error deleting team member:", error.message);
+      res.status(500).json({ error: "Error deleting team member" });
+    }
+  });
+
+  // About Page Content
+  app.get("/api/about", async (req, res) => {
+    try {
+      const content = await storage.getAboutPageContent();
+      res.json(content);
+    } catch (error: any) {
+      console.error("Error fetching about page content:", error.message);
+      res.status(503).json({
+        heroTitle: "This is our story",
+        heroSubtitle: "About us",
+        companyName: "Phoenix Cloud",
+        companyDescription: "Web & Game Hosting Business focused on high-performance hosting.",
+        storyTitle: "The beginning",
+        storyContent: "Phoenix Cloud started with a simple goal: to provide reliable and high-performance server hosting.",
+        yearsExperience: "1",
+        visionTitle: "Our Vision",
+        visionContent: "Our vision is to provide the most reliable, high-performance hosting services.",
+        missionTitle: "Our Mission",
+        missionContent: "Our mission is to deliver the best server hosting experience.",
+        teamSectionTitle: "Behind the scene",
+        teamSectionSubtitle: "Our solid team",
+        stat1Value: "150",
+        stat1Label: "Happy Clients",
+        stat2Value: "300",
+        stat2Label: "Servers Ordered",
+        stat3Value: "10",
+        stat3Label: "Awards Winning",
+        stat4Value: "1",
+        stat4Label: "Years Experience",
+      });
+    }
+  });
+
+  app.post("/api/about", async (req, res) => {
+    try {
+      const content = aboutPageSchema.parse(req.body);
+      const updated = await storage.updateAboutPageContent(content);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("About page error:", error.message);
       if (error.message.includes("validation")) {
         res.status(400).json({ error: "Invalid input" });
       } else {
