@@ -309,17 +309,55 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
     // Subcategories
     if (apiPath === "/subcategories" && method === "GET") {
-      const subcategories = await query("SELECT * FROM subcategories");
+      const subcategories = await query("SELECT * FROM subcategories ORDER BY `order` ASC, id ASC");
       await mysql.end();
       return jsonResponse(200, subcategories || []);
     }
 
     if (apiPath === "/subcategories" && method === "POST") {
-      const { name, slug, categoryId } = body;
+      const { name, slug, categoryId, order } = body;
       const id = randomUUID();
-      await query("INSERT INTO subcategories (id, name, slug, categoryId) VALUES (?, ?, ?, ?)", [id, name, slug, categoryId]);
+      
+      // Check for duplicate order in same category
+      if (order !== undefined && order !== null) {
+        const existing = await query("SELECT * FROM subcategories WHERE categoryId = ? AND `order` = ?", [categoryId, order]);
+        if (existing && existing.length > 0) {
+          await mysql.end();
+          return jsonResponse(409, { error: `Position ${order} is already used by "${existing[0].name}". Please choose a different position.`, conflictingItem: existing[0] });
+        }
+      }
+      
+      await query("INSERT INTO subcategories (id, name, slug, categoryId, `order`) VALUES (?, ?, ?, ?, ?)", [id, name, slug, categoryId, order || 0]);
       await mysql.end();
-      return jsonResponse(201, { id, name, slug, categoryId });
+      return jsonResponse(201, { id, name, slug, categoryId, order: order || 0 });
+    }
+
+    if (apiPath.startsWith("/subcategories/") && method === "PATCH") {
+      const id = apiPath.split("/subcategories/")[1];
+      const { name, slug, categoryId, order } = body;
+      
+      // Get current subcategory
+      const current = await query("SELECT * FROM subcategories WHERE id = ?", [id]);
+      if (!current || current.length === 0) {
+        await mysql.end();
+        return jsonResponse(404, { error: "Subcategory not found" });
+      }
+      
+      const currentSub = current[0];
+      const newOrder = order !== undefined ? order : currentSub.order;
+      
+      // Check for duplicate order in same category (excluding current)
+      if (newOrder !== undefined && newOrder !== null && newOrder !== currentSub.order) {
+        const existing = await query("SELECT * FROM subcategories WHERE categoryId = ? AND `order` = ? AND id != ?", [categoryId || currentSub.categoryId, newOrder, id]);
+        if (existing && existing.length > 0) {
+          await mysql.end();
+          return jsonResponse(409, { error: `Position ${newOrder} is already used by "${existing[0].name}". Please choose a different position.`, conflictingItem: existing[0] });
+        }
+      }
+      
+      await query("UPDATE subcategories SET name = ?, slug = ?, `order` = ? WHERE id = ?", [name, slug, newOrder, id]);
+      await mysql.end();
+      return jsonResponse(200, { id, name, slug, categoryId: categoryId || currentSub.categoryId, order: newOrder });
     }
 
     if (apiPath.startsWith("/subcategories/") && method === "DELETE") {
@@ -331,7 +369,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
     // Plans
     if (apiPath === "/plans" && method === "GET") {
-      const rows = await query("SELECT * FROM plans");
+      const rows = await query("SELECT * FROM plans ORDER BY `order` ASC, id ASC");
       const plans = (rows || []).map((row: any) => ({
         ...row,
         features: typeof row.features === "string" ? JSON.parse(row.features) : row.features || [],
@@ -342,25 +380,55 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     }
 
     if (apiPath === "/plans" && method === "POST") {
-      const { name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId } = body;
+      const { name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId, order } = body;
       const id = randomUUID();
+      
+      // Check for duplicate order in same subcategory
+      if (order !== undefined && order !== null) {
+        const existing = await query("SELECT * FROM plans WHERE subcategoryId = ? AND `order` = ?", [subcategoryId, order]);
+        if (existing && existing.length > 0) {
+          await mysql.end();
+          return jsonResponse(409, { error: `Position ${order} is already used by "${existing[0].name}". Please choose a different position.`, conflictingItem: existing[0] });
+        }
+      }
+      
       await query(
-        "INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [id, name, description, priceUsd, priceInr, period, JSON.stringify(features || []), popular || false, categoryId, subcategoryId]
+        "INSERT INTO plans (id, name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId, `order`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [id, name, description, priceUsd, priceInr, period, JSON.stringify(features || []), popular || false, categoryId, subcategoryId, order || 0]
       );
       await mysql.end();
-      return jsonResponse(201, { id, ...body });
+      return jsonResponse(201, { id, name, description, priceUsd, priceInr, period, features: features || [], popular: popular || false, categoryId, subcategoryId, order: order || 0 });
     }
 
     if (apiPath.startsWith("/plans/") && method === "PATCH") {
       const id = apiPath.split("/plans/")[1];
-      const { name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId } = body;
+      const { name, description, priceUsd, priceInr, period, features, popular, categoryId, subcategoryId, order } = body;
+      
+      // Get current plan
+      const current = await query("SELECT * FROM plans WHERE id = ?", [id]);
+      if (!current || current.length === 0) {
+        await mysql.end();
+        return jsonResponse(404, { error: "Plan not found" });
+      }
+      
+      const currentPlan = current[0];
+      const newOrder = order !== undefined ? order : currentPlan.order;
+      
+      // Check for duplicate order in same subcategory (excluding current)
+      if (newOrder !== undefined && newOrder !== null && newOrder !== currentPlan.order) {
+        const existing = await query("SELECT * FROM plans WHERE subcategoryId = ? AND `order` = ? AND id != ?", [subcategoryId || currentPlan.subcategoryId, newOrder, id]);
+        if (existing && existing.length > 0) {
+          await mysql.end();
+          return jsonResponse(409, { error: `Position ${newOrder} is already used by "${existing[0].name}". Please choose a different position.`, conflictingItem: existing[0] });
+        }
+      }
+      
       await query(
-        "UPDATE plans SET name = ?, description = ?, priceUsd = ?, priceInr = ?, period = ?, features = ?, popular = ?, categoryId = ?, subcategoryId = ? WHERE id = ?",
-        [name, description, priceUsd, priceInr, period, JSON.stringify(features || []), popular || false, categoryId, subcategoryId, id]
+        "UPDATE plans SET name = ?, description = ?, priceUsd = ?, priceInr = ?, period = ?, features = ?, popular = ?, categoryId = ?, subcategoryId = ?, `order` = ? WHERE id = ?",
+        [name, description, priceUsd, priceInr, period, JSON.stringify(features || []), popular || false, categoryId, subcategoryId || currentPlan.subcategoryId, newOrder, id]
       );
       await mysql.end();
-      return jsonResponse(200, { id, ...body });
+      return jsonResponse(200, { id, name, description, priceUsd, priceInr, period, features: features || [], popular: popular || false, categoryId, subcategoryId: subcategoryId || currentPlan.subcategoryId, order: newOrder });
     }
 
     if (apiPath.startsWith("/plans/") && method === "DELETE") {
