@@ -1,5 +1,5 @@
-# Exclude API routes from SPA redirect
-/api/*  200
+# Route API calls to Netlify function
+/api/*  /.netlify/functions/api/:splat  200
 
 # SPA fallback - MUST be last
 /*    /index.html   200
