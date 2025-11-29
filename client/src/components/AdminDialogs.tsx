@@ -359,6 +359,7 @@ export function AddPlanDialog({
           categoryId,
           subcategoryId,
           popular,
+          order,
         }),
       });
 
@@ -373,6 +374,7 @@ export function AddPlanDialog({
         setSubcategoryId("");
         setFeatures("");
         setPopular(false);
+        setOrder(0);
         onOpenChange(false);
         onSuccess();
       } else {
@@ -499,6 +501,18 @@ export function AddPlanDialog({
             <label htmlFor="popular" className="text-sm font-medium cursor-pointer">
               Mark as most popular
             </label>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Display Order</label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={order}
+              onChange={(e) => setOrder(Number(e.target.value))}
+              data-testid="input-plan-order"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Lower numbers display first</p>
           </div>
         </div>
         <DialogFooter>

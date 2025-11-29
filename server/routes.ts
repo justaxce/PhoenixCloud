@@ -142,8 +142,8 @@ export async function registerRoutes(
 
   app.post("/api/subcategories", async (req, res) => {
     try {
-      const { name, slug, categoryId } = subcategorySchema.parse(req.body);
-      const subcategory = await storage.createSubcategory(name, slug, categoryId);
+      const { name, slug, categoryId, order } = subcategorySchema.parse(req.body);
+      const subcategory = await storage.createSubcategory(name, slug, categoryId, order);
       res.status(201).json(subcategory);
     } catch (error) {
       res.status(400).json({ error: "Invalid input" });
@@ -152,8 +152,8 @@ export async function registerRoutes(
 
   app.patch("/api/subcategories/:id", async (req, res) => {
     try {
-      const { name, slug } = subcategorySchema.parse(req.body);
-      const subcategory = await storage.updateSubcategory(req.params.id, name, slug);
+      const { name, slug, order } = subcategorySchema.parse(req.body);
+      const subcategory = await storage.updateSubcategory(req.params.id, name, slug, order);
       if (subcategory) {
         res.json(subcategory);
       } else {
