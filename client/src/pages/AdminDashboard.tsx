@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/components/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [editingTeamMember, setEditingTeamMember] = useState<TeamMember | null>(null);
   const [showTeamMemberForm, setShowTeamMemberForm] = useState(false);
-  const [teamMemberForm, setTeamMemberForm] = useState({ name: "", role: "", imageUrl: "", order: 0 });
+  const [teamMemberForm, setTeamMemberForm] = useState({ name: "", role: "", description: "", imageUrl: "", order: 0 });
 
   const [supportLink, setSupportLink] = useState("");
   const [redirectLink, setRedirectLink] = useState("");
@@ -81,6 +81,15 @@ export default function AdminDashboard() {
   const [ctaDescription, setCtaDescription] = useState("");
   const [backgroundImageLight, setBackgroundImageLight] = useState("");
   const [backgroundImageDark, setBackgroundImageDark] = useState("");
+
+  // Memoized callbacks to fix infinite re-render in RichTextEditor
+  const handleAboutContentChange = useCallback((field: keyof AboutPageContent, value: string) => {
+    setAboutContent(prev => prev ? { ...prev, [field]: value } : null);
+  }, []);
+
+  const handleSettingsChange = useCallback((field: keyof SettingsType, value: string) => {
+    setSettings(prev => ({ ...prev, [field]: value } as any));
+  }, []);
 
   // Dialog states
   const [showAddCategory, setShowAddCategory] = useState(false);

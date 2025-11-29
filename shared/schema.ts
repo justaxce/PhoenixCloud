@@ -79,6 +79,7 @@ export interface TeamMember {
   id: string;
   name: string;
   role: string;
+  description: string;
   imageUrl: string;
   order: number;
 }
@@ -180,6 +181,7 @@ export const settingsSchema = z.object({
 export const teamMemberSchema = z.object({
   name: z.string().min(1),
   role: z.string().min(1),
+  description: z.string().optional(),
   imageUrl: z.string().optional(),
   order: z.number().optional(),
 });
