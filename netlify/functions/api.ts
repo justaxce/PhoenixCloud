@@ -55,7 +55,8 @@ async function ensureTables() {
       id VARCHAR(36) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       slug VARCHAR(255) NOT NULL UNIQUE,
-      categoryId VARCHAR(36) NOT NULL
+      categoryId VARCHAR(36) NOT NULL,
+      \`order\` INT DEFAULT 0
     )
   `);
 
@@ -70,7 +71,8 @@ async function ensureTables() {
       features JSON,
       popular BOOLEAN DEFAULT FALSE,
       categoryId VARCHAR(36),
-      subcategoryId VARCHAR(36)
+      subcategoryId VARCHAR(36),
+      \`order\` INT DEFAULT 0
     )
   `);
 
