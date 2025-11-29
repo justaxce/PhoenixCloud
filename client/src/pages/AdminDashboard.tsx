@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -631,10 +632,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Description</label>
-                  <Input
+                  <RichTextEditor
                     placeholder="Experience blazing-fast performance..."
                     value={heroDescription}
-                    onChange={(e) => setHeroDescription(e.target.value)}
+                    onChange={setHeroDescription}
                     data-testid="input-hero-description"
                   />
                 </div>
@@ -728,10 +729,10 @@ export default function AdminDashboard() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Section Description</label>
-                    <Input
+                    <RichTextEditor
                       placeholder="Built for performance, reliability, and ease of use."
                       value={featuresSectionDescription}
-                      onChange={(e) => setFeaturesSectionDescription(e.target.value)}
+                      onChange={setFeaturesSectionDescription}
                       data-testid="input-features-description"
                     />
                   </div>
@@ -759,9 +760,9 @@ export default function AdminDashboard() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-sm font-medium">Feature {feature.num} Description</label>
-                          <Input
+                          <RichTextEditor
                             value={feature.desc}
-                            onChange={(e) => feature.setDesc(e.target.value)}
+                            onChange={feature.setDesc}
                             data-testid={`input-feature${feature.num}-desc`}
                           />
                         </div>
@@ -789,10 +790,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">CTA Description</label>
-                  <Input
+                  <RichTextEditor
                     placeholder="Join thousands of satisfied customers..."
                     value={ctaDescription}
-                    onChange={(e) => setCtaDescription(e.target.value)}
+                    onChange={setCtaDescription}
                     data-testid="input-cta-description"
                   />
                 </div>
@@ -973,10 +974,10 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Story Content</label>
-                      <Input
+                      <RichTextEditor
                         placeholder="Phoenix Cloud started with a simple goal..."
                         value={aboutContent.storyContent}
-                        onChange={(e) => setAboutContent({ ...aboutContent, storyContent: e.target.value })}
+                        onChange={(value) => setAboutContent({ ...aboutContent, storyContent: value })}
                         data-testid="input-about-story-content"
                       />
                     </div>
@@ -1055,19 +1056,19 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Vision Content</label>
-                      <Input
+                      <RichTextEditor
                         placeholder="Our vision is to provide the most reliable..."
                         value={aboutContent.visionContent}
-                        onChange={(e) => setAboutContent({ ...aboutContent, visionContent: e.target.value })}
+                        onChange={(value) => setAboutContent({ ...aboutContent, visionContent: value })}
                         data-testid="input-about-vision-content"
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Mission Content</label>
-                      <Input
+                      <RichTextEditor
                         placeholder="Our mission is to deliver the best..."
                         value={aboutContent.missionContent}
-                        onChange={(e) => setAboutContent({ ...aboutContent, missionContent: e.target.value })}
+                        onChange={(value) => setAboutContent({ ...aboutContent, missionContent: value })}
                         data-testid="input-about-mission-content"
                       />
                     </div>

@@ -76,8 +76,7 @@ export function PlanCard({ plan, redirectLink = "#" }: PlanCardProps) {
       
       <CardFooter>
         <Button
-          className="w-full"
-          variant={plan.popular ? "default" : "outline"}
+          className="w-full bg-[#90EE90] hover:bg-[#7CFC00] text-black border-2 border-[#FF6B00] no-default-hover-elevate no-default-active-elevate"
           onClick={handleOrderNow}
           data-testid={`button-order-${plan.id}`}
         >

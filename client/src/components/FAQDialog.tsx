@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 interface FAQDialogProps {
   open: boolean;
@@ -85,11 +85,10 @@ export function FAQDialog({ open, onOpenChange, onSuccess, editingFAQ }: FAQDial
           </div>
           <div>
             <label className="text-sm font-medium">Answer</label>
-            <Textarea
+            <RichTextEditor
               placeholder="Enter the answer..."
               value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              className="h-24"
+              onChange={setAnswer}
               data-testid="textarea-faq-answer"
             />
           </div>

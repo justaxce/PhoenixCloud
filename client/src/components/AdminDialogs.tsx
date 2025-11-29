@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import type { Category } from "@shared/schema";
 
 function slugify(text: string): string {
@@ -417,10 +418,10 @@ export function AddPlanDialog({
 
           <div>
             <label className="text-sm font-medium">Description</label>
-            <Input
+            <RichTextEditor
               placeholder="Brief description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={setDescription}
               data-testid="input-plan-description"
             />
           </div>
