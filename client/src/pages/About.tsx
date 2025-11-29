@@ -21,23 +21,61 @@ interface AboutProps {
 export default function About({ categories = [] }: AboutProps) {
   const [aboutContent, setAboutContent] = useState<AboutPageContent | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [aboutRes, teamRes] = await Promise.all([
-          fetch("/api/about"),
-          fetch("/api/team-members"),
-        ]);
+        const aboutResponse = await fetch("/api/about", { 
+          signal: AbortSignal.timeout(8000)
+        });
         
-        if (aboutRes.ok) {
-          setAboutContent(await aboutRes.json());
+        if (!aboutResponse.ok) {
+          throw new Error(`API returned ${aboutResponse.status}`);
         }
-        if (teamRes.ok) {
-          setTeamMembers(await teamRes.json());
+        
+        const aboutData = await aboutResponse.json();
+        setAboutContent(aboutData);
+
+        const teamResponse = await fetch("/api/team-members", { 
+          signal: AbortSignal.timeout(8000)
+        });
+        
+        if (teamResponse.ok) {
+          setTeamMembers(await teamResponse.json());
         }
       } catch (err) {
         console.error("Failed to load about page data:", err);
+        setError(true);
+        // Set default content on error
+        setAboutContent({
+          heroTitle: "This is our story",
+          heroSubtitle: "About us",
+          heroImageUrl: "",
+          companyName: "Phoenix Cloud",
+          companyDescription: "Web & Game Hosting Business",
+          companyAddress: "",
+          supportEmail: "",
+          storyTitle: "The beginning",
+          storyContent: "Phoenix Cloud - Your trusted hosting provider",
+          yearsExperience: "1",
+          storyImage1Url: "",
+          storyImage2Url: "",
+          visionTitle: "Our Vision",
+          visionContent: "Providing reliable hosting services",
+          missionTitle: "Our Mission",
+          missionContent: "Delivering excellent service",
+          teamSectionTitle: "Behind the scene",
+          teamSectionSubtitle: "Our solid team",
+          stat1Value: "150",
+          stat1Label: "Happy Clients",
+          stat2Value: "300",
+          stat2Label: "Servers Ordered",
+          stat3Value: "10",
+          stat3Label: "Awards Winning",
+          stat4Value: "1",
+          stat4Label: "Years Experience",
+        });
       }
     };
 

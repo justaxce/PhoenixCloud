@@ -130,6 +130,48 @@ async function ensureTables() {
     )
   `);
 
+  await query(`
+    CREATE TABLE IF NOT EXISTS team_members (
+      id VARCHAR(36) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      role VARCHAR(255) NOT NULL,
+      imageUrl TEXT,
+      \`order\` INT DEFAULT 0
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS about_page_content (
+      id INTEGER PRIMARY KEY,
+      heroTitle VARCHAR(255),
+      heroSubtitle VARCHAR(255),
+      heroImageUrl TEXT,
+      companyName VARCHAR(255),
+      companyDescription TEXT,
+      companyAddress TEXT,
+      supportEmail VARCHAR(255),
+      storyTitle VARCHAR(255),
+      storyContent TEXT,
+      yearsExperience VARCHAR(50),
+      storyImage1Url TEXT,
+      storyImage2Url TEXT,
+      visionTitle VARCHAR(255),
+      visionContent TEXT,
+      missionTitle VARCHAR(255),
+      missionContent TEXT,
+      teamSectionTitle VARCHAR(255),
+      teamSectionSubtitle VARCHAR(255),
+      stat1Value VARCHAR(50),
+      stat1Label VARCHAR(100),
+      stat2Value VARCHAR(50),
+      stat2Label VARCHAR(100),
+      stat3Value VARCHAR(50),
+      stat3Label VARCHAR(100),
+      stat4Value VARCHAR(50),
+      stat4Label VARCHAR(100)
+    )
+  `);
+
   // Insert default settings if not exists
   const existingSettings = await query("SELECT id FROM settings WHERE id = 1");
   if (!existingSettings || existingSettings.length === 0) {
@@ -142,6 +184,14 @@ async function ensureTables() {
     const adminId = randomUUID();
     const passwordHash = hashPassword("admin123");
     await query("INSERT INTO admin_users (id, username, passwordHash) VALUES (?, ?, ?)", [adminId, "admin", passwordHash]);
+  }
+
+  // Insert default about page content if not exists
+  const existingAbout = await query("SELECT id FROM about_page_content WHERE id = 1");
+  if (!existingAbout || existingAbout.length === 0) {
+    await query(`INSERT INTO about_page_content (id, heroTitle, heroSubtitle, companyName, companyDescription, storyTitle, storyContent, yearsExperience, storyImage1Url, storyImage2Url, visionTitle, visionContent, missionTitle, missionContent, teamSectionTitle, teamSectionSubtitle, stat1Value, stat1Label, stat2Value, stat2Label, stat3Value, stat3Label, stat4Value, stat4Label) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
+      [1, "This is our story", "About us", "Phoenix Cloud", "Web & Game Hosting Business focused on high-performance hosting for gamers and developers.", "The beginning", "Phoenix Cloud started with a simple goal: to provide reliable and high-performance server hosting. We recognized the need for a platform where gamers could enjoy smooth, lag-free experiences. Today, we are proud to offer scalable and affordable hosting solutions trusted by gamers worldwide.", "1", "", "", "Our Vision", "Our vision is to provide the most reliable, high-performance hosting services. We aim to create a platform where gamers can focus on enjoying their game, without worrying about server performance.", "Our Mission", "Our mission is to deliver the best server hosting experience through top-tier infrastructure, low-latency connections, and excellent customer support.", "Behind the scene", "Our solid team", "150", "Happy Clients", "300", "Servers Ordered", "10", "Awards Winning", "1", "Years Experience"]
+    );
   }
 }
 
@@ -344,6 +394,97 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     if (apiPath.startsWith("/faqs/") && method === "DELETE") {
       const id = apiPath.split("/faqs/")[1];
       await query("DELETE FROM faqs WHERE id = ?", [id]);
+      await mysql.end();
+      return jsonResponse(200, { success: true });
+    }
+
+    // About Page Content
+    if (apiPath === "/about" && method === "GET") {
+      const rows = await query("SELECT * FROM about_page_content WHERE id = 1");
+      const row = (rows && rows[0]) || {};
+      await mysql.end();
+      return jsonResponse(200, {
+        heroTitle: row.heroTitle || "",
+        heroSubtitle: row.heroSubtitle || "",
+        heroImageUrl: row.heroImageUrl || "",
+        companyName: row.companyName || "",
+        companyDescription: row.companyDescription || "",
+        companyAddress: row.companyAddress || "",
+        supportEmail: row.supportEmail || "",
+        storyTitle: row.storyTitle || "",
+        storyContent: row.storyContent || "",
+        yearsExperience: row.yearsExperience || "",
+        storyImage1Url: row.storyImage1Url || "",
+        storyImage2Url: row.storyImage2Url || "",
+        visionTitle: row.visionTitle || "",
+        visionContent: row.visionContent || "",
+        missionTitle: row.missionTitle || "",
+        missionContent: row.missionContent || "",
+        teamSectionTitle: row.teamSectionTitle || "",
+        teamSectionSubtitle: row.teamSectionSubtitle || "",
+        stat1Value: row.stat1Value || "",
+        stat1Label: row.stat1Label || "",
+        stat2Value: row.stat2Value || "",
+        stat2Label: row.stat2Label || "",
+        stat3Value: row.stat3Value || "",
+        stat3Label: row.stat3Label || "",
+        stat4Value: row.stat4Value || "",
+        stat4Label: row.stat4Label || "",
+      });
+    }
+
+    if (apiPath === "/about" && method === "POST") {
+      const a = body;
+      await query(
+        `UPDATE about_page_content SET 
+          heroTitle = ?, heroSubtitle = ?, heroImageUrl = ?, companyName = ?, companyDescription = ?, 
+          companyAddress = ?, supportEmail = ?, storyTitle = ?, storyContent = ?, yearsExperience = ?,
+          storyImage1Url = ?, storyImage2Url = ?, visionTitle = ?, visionContent = ?, missionTitle = ?, 
+          missionContent = ?, teamSectionTitle = ?, teamSectionSubtitle = ?,
+          stat1Value = ?, stat1Label = ?, stat2Value = ?, stat2Label = ?, stat3Value = ?, stat3Label = ?,
+          stat4Value = ?, stat4Label = ?
+        WHERE id = 1`,
+        [
+          a.heroTitle || "", a.heroSubtitle || "", a.heroImageUrl || "", a.companyName || "", a.companyDescription || "",
+          a.companyAddress || "", a.supportEmail || "", a.storyTitle || "", a.storyContent || "", a.yearsExperience || "",
+          a.storyImage1Url || "", a.storyImage2Url || "", a.visionTitle || "", a.visionContent || "", a.missionTitle || "",
+          a.missionContent || "", a.teamSectionTitle || "", a.teamSectionSubtitle || "",
+          a.stat1Value || "", a.stat1Label || "", a.stat2Value || "", a.stat2Label || "", a.stat3Value || "", a.stat3Label || "",
+          a.stat4Value || "", a.stat4Label || "",
+        ]
+      );
+      await mysql.end();
+      return jsonResponse(200, body);
+    }
+
+    // Team Members
+    if (apiPath === "/team-members" && method === "GET") {
+      const members = await query("SELECT * FROM team_members ORDER BY \`order\` ASC");
+      await mysql.end();
+      return jsonResponse(200, members || []);
+    }
+
+    if (apiPath === "/team-members" && method === "POST") {
+      const { name, role, imageUrl, order } = body;
+      const id = randomUUID();
+      await query("INSERT INTO team_members (id, name, role, imageUrl, \`order\`) VALUES (?, ?, ?, ?, ?)", 
+        [id, name, role, imageUrl || "", order || 0]);
+      await mysql.end();
+      return jsonResponse(201, { id, name, role, imageUrl: imageUrl || "", order: order || 0 });
+    }
+
+    if (apiPath.startsWith("/team-members/") && method === "PATCH") {
+      const id = apiPath.split("/team-members/")[1];
+      const { name, role, imageUrl, order } = body;
+      await query("UPDATE team_members SET name = ?, role = ?, imageUrl = ?, \`order\` = ? WHERE id = ?", 
+        [name, role, imageUrl || "", order || 0, id]);
+      await mysql.end();
+      return jsonResponse(200, { id, name, role, imageUrl: imageUrl || "", order: order || 0 });
+    }
+
+    if (apiPath.startsWith("/team-members/") && method === "DELETE") {
+      const id = apiPath.split("/team-members/")[1];
+      await query("DELETE FROM team_members WHERE id = ?", [id]);
       await mysql.end();
       return jsonResponse(200, { success: true });
     }

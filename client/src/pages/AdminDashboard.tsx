@@ -198,17 +198,85 @@ export default function AdminDashboard() {
       }
       
       // Load about page content
-      const aboutRes = await fetch("/api/about");
-      if (aboutRes.ok) {
-        const about = await aboutRes.json();
-        setAboutContent(about);
+      try {
+        const aboutRes = await fetch("/api/about", { signal: AbortSignal.timeout(8000) });
+        if (aboutRes.ok) {
+          const about = await aboutRes.json();
+          setAboutContent(about);
+        } else {
+          // Set default if API fails
+          setAboutContent({
+            heroTitle: "This is our story",
+            heroSubtitle: "About us",
+            heroImageUrl: "",
+            companyName: "Phoenix Cloud",
+            companyDescription: "Web & Game Hosting",
+            companyAddress: "",
+            supportEmail: "",
+            storyTitle: "The beginning",
+            storyContent: "Company story",
+            yearsExperience: "1",
+            storyImage1Url: "",
+            storyImage2Url: "",
+            visionTitle: "Our Vision",
+            visionContent: "Vision statement",
+            missionTitle: "Our Mission",
+            missionContent: "Mission statement",
+            teamSectionTitle: "Behind the scene",
+            teamSectionSubtitle: "Our solid team",
+            stat1Value: "150",
+            stat1Label: "Happy Clients",
+            stat2Value: "300",
+            stat2Label: "Servers Ordered",
+            stat3Value: "10",
+            stat3Label: "Awards Winning",
+            stat4Value: "1",
+            stat4Label: "Years Experience",
+          });
+        }
+      } catch (error) {
+        console.error("Error loading about content:", error);
+        // Still set default values so UI doesn't break
+        setAboutContent({
+          heroTitle: "This is our story",
+          heroSubtitle: "About us",
+          heroImageUrl: "",
+          companyName: "Phoenix Cloud",
+          companyDescription: "Web & Game Hosting",
+          companyAddress: "",
+          supportEmail: "",
+          storyTitle: "The beginning",
+          storyContent: "Company story",
+          yearsExperience: "1",
+          storyImage1Url: "",
+          storyImage2Url: "",
+          visionTitle: "Our Vision",
+          visionContent: "Vision statement",
+          missionTitle: "Our Mission",
+          missionContent: "Mission statement",
+          teamSectionTitle: "Behind the scene",
+          teamSectionSubtitle: "Our solid team",
+          stat1Value: "150",
+          stat1Label: "Happy Clients",
+          stat2Value: "300",
+          stat2Label: "Servers Ordered",
+          stat3Value: "10",
+          stat3Label: "Awards Winning",
+          stat4Value: "1",
+          stat4Label: "Years Experience",
+        });
       }
       
       // Load team members
-      const teamRes = await fetch("/api/team-members");
-      if (teamRes.ok) {
-        const team = await teamRes.json();
-        setTeamMembers(Array.isArray(team) ? team : []);
+      try {
+        const teamRes = await fetch("/api/team-members", { signal: AbortSignal.timeout(8000) });
+        if (teamRes.ok) {
+          const team = await teamRes.json();
+          setTeamMembers(Array.isArray(team) ? team : []);
+        }
+      } catch (error) {
+        console.error("Error loading team members:", error);
+        setTeamMembers([]);
       }
     } catch (error) {
       console.error("Failed to load data:", error);
