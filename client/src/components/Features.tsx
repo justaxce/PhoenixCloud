@@ -92,9 +92,7 @@ export function Features({ settings }: FeaturesProps) {
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
             {sectionTitle}
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            {sectionDescription}
-          </p>
+          <div className="mt-4 text-lg text-muted-foreground" dangerouslySetInnerHTML={{ __html: sectionDescription }} />
         </div>
 
         <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 stagger-enter">
@@ -105,7 +103,7 @@ export function Features({ settings }: FeaturesProps) {
                   <feature.icon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-muted-foreground">{feature.description}</p>
+                <div className="mt-2 text-muted-foreground" dangerouslySetInnerHTML={{ __html: feature.description }} />
               </CardContent>
             </Card>
           ))}

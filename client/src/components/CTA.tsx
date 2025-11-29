@@ -23,9 +23,7 @@ export function CTA({ settings }: CTAProps) {
             <h2 className="text-3xl font-bold tracking-tight text-primary-foreground md:text-4xl">
               {ctaTitle}
             </h2>
-            <p className="mt-4 text-lg text-primary-foreground/80">
-              {ctaDescription}
-            </p>
+            <div className="mt-4 text-lg text-primary-foreground/80" dangerouslySetInnerHTML={{ __html: ctaDescription }} />
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link href="/plans">
                 <Button

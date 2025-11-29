@@ -125,9 +125,7 @@ export function Hero({ settings }: HeroProps) {
             <span className="block text-primary">{heroTitleLine2}</span>
           </h1>
 
-          <p className="mt-6 text-lg text-muted-foreground md:text-xl">
-            {heroDescription}
-          </p>
+          <div className="mt-6 text-lg text-muted-foreground md:text-xl prose prose-invert" dangerouslySetInnerHTML={{ __html: heroDescription }} />
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/plans">
