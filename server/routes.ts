@@ -338,6 +338,7 @@ export async function registerRoutes(
       const created = await storage.createTeamMember({
         name: member.name,
         role: member.role,
+        description: member.description || "",
         imageUrl: member.imageUrl || "",
         order: member.order || 0,
       });
