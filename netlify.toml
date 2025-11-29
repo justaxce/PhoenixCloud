@@ -8,11 +8,14 @@
   external_node_modules = ["postgres"]
   included_files = ["node_modules/postgres/**"]
 
+# Redirect API calls to Netlify Functions BEFORE the SPA fallback
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
+  force = true
 
+# SPA fallback - MUST be last
 [[redirects]]
   from = "/*"
   to = "/index.html"
