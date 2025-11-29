@@ -1,4 +1,4 @@
-import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
+import type { Handler } from "@netlify/functions";
 import { scryptSync, randomUUID } from "crypto";
 import postgres from "postgres";
 
@@ -133,8 +133,8 @@ async function ensureTables(db: ReturnType<typeof postgres>) {
   }
 }
 
-export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-  console.log("Function called with path:", event.path, "method:", event.httpMethod);
+const handler: Handler = async (event, context) => {
+  console.log("API Function called:", event.path, event.httpMethod);
 
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: corsHeaders(), body: "" };
@@ -142,33 +142,39 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
   const db = getDb();
   if (!db) {
-    return jsonResponse(500, { error: "Database not configured" });
+    return jsonResponse(500, { error: "Database not configured", hasDbUrl: !!process.env.DATABASE_URL });
   }
 
   try {
     await ensureTables(db);
 
-    // Parse the API path - handle both direct and redirected calls
-    let apiPath = event.path;
+    // Parse the API path from the path
+    let rawPath = event.path || "";
     
-    // Remove netlify function prefix if present
-    if (apiPath.includes("/.netlify/functions/api")) {
-      apiPath = apiPath.replace("/.netlify/functions/api", "");
+    // Extract the path after /api/
+    let apiPath = "";
+    if (rawPath.includes("/api/")) {
+      apiPath = "/" + rawPath.split("/api/")[1];
+    } else if (rawPath.includes("/.netlify/functions/api/")) {
+      apiPath = "/" + rawPath.split("/.netlify/functions/api/")[1];
+    } else if (rawPath.includes("/.netlify/functions/api")) {
+      apiPath = rawPath.replace("/.netlify/functions/api", "") || "/";
+    } else {
+      apiPath = rawPath;
     }
-    // Remove /api prefix if present
-    if (apiPath.startsWith("/api")) {
-      apiPath = apiPath.substring(4);
-    }
-    // Ensure starts with /
+    
+    // Clean up path
     if (!apiPath.startsWith("/")) {
       apiPath = "/" + apiPath;
     }
-    // Remove trailing slash
     if (apiPath.length > 1 && apiPath.endsWith("/")) {
       apiPath = apiPath.slice(0, -1);
     }
+    if (apiPath === "") {
+      apiPath = "/";
+    }
 
-    console.log("Parsed API path:", apiPath);
+    console.log("Raw path:", rawPath, "Parsed API path:", apiPath);
 
     const method = event.httpMethod;
     let body: any = {};
@@ -177,6 +183,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       try {
         body = JSON.parse(event.body);
       } catch (e) {
+        await db.end();
         return jsonResponse(400, { error: "Invalid JSON body" });
       }
     }
@@ -465,10 +472,12 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     }
 
     await db.end();
-    return jsonResponse(404, { error: "Not found", path: apiPath, method });
+    return jsonResponse(404, { error: "Not found", path: apiPath, rawPath: rawPath, method });
   } catch (error: any) {
     console.error("API Error:", error);
     try { await db.end(); } catch (e) {}
     return jsonResponse(500, { error: error.message || "Internal server error" });
   }
 };
+
+export default handler;
