@@ -1,1 +1,5 @@
+# Exclude API routes from SPA redirect
+/api/*  200
+
+# SPA fallback - MUST be last
 /*    /index.html   200
