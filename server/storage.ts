@@ -38,13 +38,9 @@ export interface IStorage {
   initializeDatabase(): Promise<void>;
 }
 
-const connectionUrl = process.env.DATABASE_URL;
-if (!connectionUrl) {
-  console.error("ERROR: DATABASE_URL not set");
-  process.exit(1);
-}
-
 function getConnectionConfig() {
+  const connectionUrl = process.env.DATABASE_URL;
+  
   // Use MySQL credentials from environment or fallback to hardcoded MySQL
   const mysqlUser = process.env.MYSQL_USER || "u4_4OW4n62mjZ";
   const mysqlPassword = process.env.MYSQL_PASSWORD || "+3GFoa+x55vSzFL4pnX1=l6F";
@@ -52,7 +48,7 @@ function getConnectionConfig() {
   const mysqlPort = parseInt(process.env.MYSQL_PORT || "3306");
   const mysqlDatabase = process.env.MYSQL_DATABASE || "s4_pheonix-cloud";
 
-  // If DATABASE_URL exists but points to PostgreSQL/Neon, ignore it and use MySQL
+  // If DATABASE_URL exists and points to MySQL (not PostgreSQL/Neon), use it
   if (connectionUrl && !connectionUrl.includes("neon") && !connectionUrl.includes("postgres")) {
     try {
       const urlObj = new URL(connectionUrl);
@@ -68,7 +64,7 @@ function getConnectionConfig() {
     }
   }
 
-  // Use MySQL credentials
+  // Use MySQL credentials (default fallback)
   return {
     host: mysqlHost,
     port: mysqlPort,
