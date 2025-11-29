@@ -267,9 +267,33 @@ export class MySQLStorage implements IStorage {
         console.log("✅ Created default admin user: admin / admin123");
       }
 
+      // Add migration for missing story image columns
+      try {
+        await conn.query(`ALTER TABLE about_page_content ADD COLUMN storyImage1Url TEXT AFTER yearsExperience`);
+        console.log("✅ Added storyImage1Url column to about_page_content");
+      } catch (e: any) {
+        // Column might already exist, ignore duplicate column errors
+        if (e.message && e.message.includes("Duplicate column")) {
+          console.log("✅ storyImage1Url column already exists");
+        } else {
+          console.warn("⚠️ Error adding storyImage1Url column:", e.message);
+        }
+      }
+      try {
+        await conn.query(`ALTER TABLE about_page_content ADD COLUMN storyImage2Url TEXT AFTER storyImage1Url`);
+        console.log("✅ Added storyImage2Url column to about_page_content");
+      } catch (e: any) {
+        // Column might already exist, ignore duplicate column errors
+        if (e.message && e.message.includes("Duplicate column")) {
+          console.log("✅ storyImage2Url column already exists");
+        } else {
+          console.warn("⚠️ Error adding storyImage2Url column:", e.message);
+        }
+      }
+
       const [aboutContent] = await conn.query("SELECT * FROM about_page_content WHERE id = 1");
       if (Array.isArray(aboutContent) && aboutContent.length === 0) {
-        await conn.query(`INSERT INTO about_page_content (id, heroTitle, heroSubtitle, companyName, companyDescription, storyTitle, storyContent, yearsExperience, storyImage1Url, storyImage2Url, visionTitle, visionContent, missionTitle, misionContent, teamSectionTitle, teamSectionSubtitle, stat1Value, stat1Label, stat2Value, stat2Label, stat3Value, stat3Label, stat4Value, stat4Label) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
+        await conn.query(`INSERT INTO about_page_content (id, heroTitle, heroSubtitle, companyName, companyDescription, storyTitle, storyContent, yearsExperience, storyImage1Url, storyImage2Url, visionTitle, visionContent, missionTitle, missionContent, teamSectionTitle, teamSectionSubtitle, stat1Value, stat1Label, stat2Value, stat2Label, stat3Value, stat3Label, stat4Value, stat4Label) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
           [1, "This is our story", "About us", "Phoenix Cloud", "Web & Game Hosting Business focused on high-performance hosting for gamers and developers.", "The beginning", "Phoenix Cloud started with a simple goal: to provide reliable and high-performance server hosting. We recognized the need for a platform where gamers could enjoy smooth, lag-free experiences. Today, we are proud to offer scalable and affordable hosting solutions trusted by gamers worldwide.", "1", "", "", "Our Vision", "Our vision is to provide the most reliable, high-performance hosting services. We aim to create a platform where gamers can focus on enjoying their game, without worrying about server performance.", "Our Mission", "Our mission is to deliver the best server hosting experience through top-tier infrastructure, low-latency connections, and excellent customer support.", "Behind the scene", "Our solid team", "150", "Happy Clients", "300", "Servers Ordered", "10", "Awards Winning", "1", "Years Experience"]
         );
       }
