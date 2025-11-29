@@ -21,7 +21,6 @@ function getConnection() {
     max: 1,
     idle_timeout: 30,
     connect_timeout: 30,
-    statement_timeout: 30000,
     ssl: { rejectUnauthorized: false }
   });
 }
@@ -511,4 +510,4 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
   }
 };
 
-export { handler };
+export default handler;
