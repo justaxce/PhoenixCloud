@@ -165,7 +165,7 @@ export default function AdminDashboard() {
         setStat2Label(s.stat2Label || "Global Locations");
         setStat3Value(s.stat3Value || "24/7");
         setStat3Label(s.stat3Label || "Expert Support");
-        setFeaturesSectionTitle(s.featuresSectionTitle || "Why Choose Phoenix Cloud?");
+        setFeaturesSectionTitle(s.featuresSectionTitle || "Why Choose Pheonix Cloud?");
         setFeaturesSectionDescription(s.featuresSectionDescription || "");
         setFeature1Title(s.feature1Title || "Blazing Fast");
         setFeature1Description(s.feature1Description || "");
