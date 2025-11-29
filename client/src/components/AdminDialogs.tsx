@@ -138,7 +138,7 @@ interface AddSubcategoryDialogProps {
   onOpenChange: (open: boolean) => void;
   categories: Category[];
   onSuccess: () => void;
-  editingSubcategory?: { id: string; name: string; slug: string; categoryId: string } | null;
+  editingSubcategory?: { id: string; name: string; slug: string; categoryId: string; order: number } | null;
 }
 
 export function AddSubcategoryDialog({
@@ -151,6 +151,7 @@ export function AddSubcategoryDialog({
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [order, setOrder] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -159,10 +160,12 @@ export function AddSubcategoryDialog({
       setName(editingSubcategory.name || "");
       setSlug(editingSubcategory.slug || "");
       setCategoryId(editingSubcategory.categoryId || "");
+      setOrder(editingSubcategory.order || 0);
     } else if (open) {
       setName("");
       setSlug("");
       setCategoryId("");
+      setOrder(0);
     }
   }, [open, editingSubcategory]);
 
@@ -186,7 +189,7 @@ export function AddSubcategoryDialog({
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, slug, categoryId }),
+        body: JSON.stringify({ name, slug, categoryId, order }),
       });
 
       if (res.ok) {
@@ -194,6 +197,7 @@ export function AddSubcategoryDialog({
         setName("");
         setSlug("");
         setCategoryId("");
+        setOrder(0);
         onOpenChange(false);
         onSuccess();
       } else {
@@ -247,6 +251,17 @@ export function AddSubcategoryDialog({
             />
             <p className="text-xs text-muted-foreground mt-1">Auto-generated from name, but you can edit it</p>
           </div>
+          <div>
+            <label className="text-sm font-medium">Display Order</label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={order}
+              onChange={(e) => setOrder(Number(e.target.value))}
+              data-testid="input-subcategory-order"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Lower numbers display first</p>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -287,6 +302,7 @@ export function AddPlanDialog({
   const [subcategoryId, setSubcategoryId] = useState("");
   const [features, setFeatures] = useState("");
   const [popular, setPopular] = useState(false);
+  const [order, setOrder] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -301,6 +317,7 @@ export function AddPlanDialog({
       setSubcategoryId(editingPlan.subcategoryId || "");
       setFeatures(Array.isArray(editingPlan.features) ? editingPlan.features.join("\n") : "");
       setPopular(Boolean(editingPlan.popular));
+      setOrder(editingPlan.order || 0);
     } else if (open) {
       setName("");
       setDescription("");
@@ -311,6 +328,7 @@ export function AddPlanDialog({
       setSubcategoryId("");
       setFeatures("");
       setPopular(false);
+      setOrder(0);
     }
   }, [open, editingPlan]);
 
