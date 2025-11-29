@@ -263,10 +263,14 @@ export default function About({ categories = [] }: AboutProps) {
                         </p>
                         {member.description && (
                           <div 
-                            className="mt-2 text-sm text-muted-foreground ql-editor" 
+                            className="mt-2 text-sm text-muted-foreground ql-container ql-snow"
                             data-testid={`text-member-description-${member.id}`}
-                            dangerouslySetInnerHTML={{ __html: member.description }}
-                          />
+                          >
+                            <div 
+                              className="ql-editor"
+                              dangerouslySetInnerHTML={{ __html: member.description }}
+                            />
+                          </div>
                         )}
                       </div>
                     </CardContent>
