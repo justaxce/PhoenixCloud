@@ -5,7 +5,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["postgres"]
+  external_node_modules = ["mysql2"]
 
 # Handle all API routes with the api function
 [[redirects]]
