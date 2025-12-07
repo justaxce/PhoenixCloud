@@ -50,7 +50,7 @@ export function Hero({ settings }: HeroProps) {
 
   const heroTitleLine1 = settings?.heroTitleLine1 || "Cloud Hosting That";
   const heroTitleLine2 = settings?.heroTitleLine2 || "Rises Above";
-  const heroDescription = settings?.heroDescription || "Experience blazing-fast performance with Phoenix Cloud. 99.9% uptime guarantee, instant scaling, and 24/7 expert support.";
+  const heroDescription = settings?.heroDescription || "Experience blazing-fast performance with PHEONIX CLOUD. 99.9% uptime guarantee, instant scaling, and 24/7 expert support.";
   const stat1Value = settings?.stat1Value || "99.9%";
   const stat1Label = settings?.stat1Label || "Uptime SLA";
   const stat2Value = settings?.stat2Value || "50+";

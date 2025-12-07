@@ -39,9 +39,9 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src={phoenixLogo} alt="Phoenix Cloud Logo" className="h-12 w-12" data-testid="img-admin-logo" />
+            <img src={phoenixLogo} alt="PHEONIX CLOUD Logo" className="h-12 w-12" data-testid="img-admin-logo" />
           </div>
-          <CardTitle className="text-2xl">Phoenix Cloud Admin</CardTitle>
+          <CardTitle className="text-2xl">PHEONIX CLOUD Admin</CardTitle>
           <CardDescription>Enter your admin credentials to access the panel</CardDescription>
         </CardHeader>
         <CardContent>

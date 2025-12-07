@@ -327,7 +327,7 @@ export class MySQLStorage implements IStorage {
       const [aboutContent] = await conn.query("SELECT * FROM about_page_content WHERE id = 1");
       if (Array.isArray(aboutContent) && aboutContent.length === 0) {
         await conn.query(`INSERT INTO about_page_content (id, heroTitle, heroSubtitle, companyName, companyDescription, storyTitle, storyContent, yearsExperience, storyImage1Url, storyImage2Url, visionTitle, visionContent, missionTitle, missionContent, teamSectionTitle, teamSectionSubtitle, stat1Value, stat1Label, stat2Value, stat2Label, stat3Value, stat3Label, stat4Value, stat4Label) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
-          [1, "This is our story", "About us", "Phoenix Cloud", "Web & Game Hosting Business focused on high-performance hosting for gamers and developers.", "The beginning", "Phoenix Cloud started with a simple goal: to provide reliable and high-performance server hosting. We recognized the need for a platform where gamers could enjoy smooth, lag-free experiences. Today, we are proud to offer scalable and affordable hosting solutions trusted by gamers worldwide.", "1", "", "", "Our Vision", "Our vision is to provide the most reliable, high-performance hosting services. We aim to create a platform where gamers can focus on enjoying their game, without worrying about server performance.", "Our Mission", "Our mission is to deliver the best server hosting experience through top-tier infrastructure, low-latency connections, and excellent customer support.", "Behind the scene", "Our solid team", "150", "Happy Clients", "300", "Servers Ordered", "10", "Awards Winning", "1", "Years Experience"]
+          [1, "This is our story", "About us", "PHEONIX Cloud", "Web & Game Hosting Business focused on high-performance hosting for gamers and developers.", "The beginning", "PHEONIX Cloud started with a simple goal: to provide reliable and high-performance server hosting. We recognized the need for a platform where gamers could enjoy smooth, lag-free experiences. Today, we are proud to offer scalable and affordable hosting solutions trusted by gamers worldwide.", "1", "", "", "Our Vision", "Our vision is to provide the most reliable, high-performance hosting services. We aim to create a platform where gamers can focus on enjoying their game, without worrying about server performance.", "Our Mission", "Our mission is to deliver the best server hosting experience through top-tier infrastructure, low-latency connections, and excellent customer support.", "Behind the scene", "Our solid team", "150", "Happy Clients", "300", "Servers Ordered", "10", "Awards Winning", "1", "Years Experience"]
         );
       }
 
@@ -529,14 +529,14 @@ export class MySQLStorage implements IStorage {
       documentationLink: row.documentationLink || "",
       heroTitleLine1: row.heroTitleLine1 || "Cloud Hosting That",
       heroTitleLine2: row.heroTitleLine2 || "Rises Above",
-      heroDescription: row.heroDescription || "Experience blazing-fast performance with Pheonix Cloud.",
+      heroDescription: row.heroDescription || "Experience blazing-fast performance with PHEONIX Cloud.",
       stat1Value: row.stat1Value || "99.9%",
       stat1Label: row.stat1Label || "Uptime SLA",
       stat2Value: row.stat2Value || "50+",
       stat2Label: row.stat2Label || "Global Locations",
       stat3Value: row.stat3Value || "24/7",
       stat3Label: row.stat3Label || "Expert Support",
-      featuresSectionTitle: row.featuresSectionTitle || "Why Choose Pheonix Cloud?",
+      featuresSectionTitle: row.featuresSectionTitle || "Why Choose PHEONIX Cloud?",
       featuresSectionDescription: row.featuresSectionDescription || "Built for performance, reliability, and ease of use.",
       feature1Title: row.feature1Title || "Blazing Fast",
       feature1Description: row.feature1Description || "NVMe SSD storage.",

@@ -49,7 +49,7 @@ interface FeaturesProps {
 }
 
 export function Features({ settings }: FeaturesProps) {
-  const sectionTitle = settings?.featuresSectionTitle || "Why Choose Phoenix Cloud?";
+  const sectionTitle = settings?.featuresSectionTitle || "Why Choose PHEONIX CLOUD?";
   const sectionDescription = settings?.featuresSectionDescription || "Built for performance, reliability, and ease of use.";
 
   const features = [

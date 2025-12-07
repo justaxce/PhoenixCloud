@@ -9,7 +9,7 @@ interface CTAProps {
 
 export function CTA({ settings }: CTAProps) {
   const ctaTitle = settings?.ctaTitle || "Ready to Rise Above?";
-  const ctaDescription = settings?.ctaDescription || "Join thousands of satisfied customers who trust Phoenix Cloud for their hosting needs. Get started in minutes.";
+  const ctaDescription = settings?.ctaDescription || "Join thousands of satisfied customers who trust PHEONIX CLOUD for their hosting needs. Get started in minutes.";
 
   return (
     <section className="py-24 page-enter">

@@ -471,8 +471,8 @@ export default function AdminDashboard() {
       <header className="border-b sticky top-0 z-40 bg-background/95 backdrop-blur">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={phoenixLogo} alt="Phoenix Cloud" className="h-9 w-9 object-contain" />
-            <span className="text-xl font-bold">Phoenix Admin</span>
+            <img src={phoenixLogo} alt="PHEONIX CLOUD" className="h-9 w-9 object-contain" />
+            <span className="text-xl font-bold">PHEONIX Admin</span>
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
@@ -506,7 +506,7 @@ export default function AdminDashboard() {
                   <Settings className="h-5 w-5" />
                   Configuration
                 </CardTitle>
-                <CardDescription>Manage your Phoenix Cloud settings</CardDescription>
+                <CardDescription>Manage your PHEONIX CLOUD settings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -724,14 +724,14 @@ export default function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Features Section</CardTitle>
-                <CardDescription>Edit the "Why Choose Phoenix Cloud?" section</CardDescription>
+                <CardDescription>Edit the "Why Choose PHEONIX CLOUD?" section</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Section Title</label>
                     <Input
-                      placeholder="Why Choose Phoenix Cloud?"
+                      placeholder="Why Choose PHEONIX CLOUD?"
                       value={featuresSectionTitle}
                       onChange={(e) => setFeaturesSectionTitle(e.target.value)}
                       data-testid="input-features-title"
@@ -919,7 +919,7 @@ export default function AdminDashboard() {
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Company Name</label>
                         <Input
-                          placeholder="Phoenix Cloud"
+                          placeholder="PHEONIX CLOUD"
                           value={aboutContent.companyName}
                           onChange={(e) => setAboutContent({ ...aboutContent, companyName: e.target.value })}
                           data-testid="input-about-company-name"
@@ -985,7 +985,7 @@ export default function AdminDashboard() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Story Content</label>
                       <RichTextEditor
-                        placeholder="Phoenix Cloud started with a simple goal..."
+                        placeholder="PHEONIX CLOUD started with a simple goal..."
                         value={aboutContent.storyContent}
                         onChange={(value) => handleAboutContentChange("storyContent", value)}
                         data-testid="input-about-story-content"

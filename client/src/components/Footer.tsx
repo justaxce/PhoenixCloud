@@ -45,8 +45,8 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2" data-testid="link-footer-logo">
-              <img src={logoImage} alt="Phoenix Cloud" className="h-9 w-9 rounded" />
-              <span className="text-xl font-bold">Phoenix Cloud</span>
+              <img src={logoImage} alt="PHEONIX CLOUD" className="h-9 w-9 rounded" />
+              <span className="text-xl font-bold">PHEONIX CLOUD</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               Premium cloud hosting solutions with 99.9% uptime guarantee. Fast, reliable, and secure.
@@ -108,7 +108,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear} Phoenix Cloud. All rights reserved.</p>
+          <p>&copy; {currentYear} PHEONIX CLOUD. All rights reserved.</p>
         </div>
       </div>
     </footer>

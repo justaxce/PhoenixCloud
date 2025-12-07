@@ -1,8 +1,8 @@
-# Phoenix Cloud Hosting - Design Guidelines
+# PHEONIX Cloud Hosting - Design Guidelines
 
 ## Design Approach
 
-**Reference-Based Approach**: Drawing inspiration from modern hosting/SaaS platforms like Vercel, Netlify, and Digital Ocean that balance professionalism with approachability. Phoenix Cloud should project reliability and technical expertise while remaining accessible.
+**Reference-Based Approach**: Drawing inspiration from modern hosting/SaaS platforms like Vercel, Netlify, and Digital Ocean that balance professionalism with approachability. PHEONIX Cloud should project reliability and technical expertise while remaining accessible.
 
 **Key Principle**: Clean, performance-focused design that mirrors the product promise—fast, reliable hosting.
 
@@ -144,4 +144,4 @@
 - Larger text sizes for readability
 - Plan cards: horizontal scroll on mobile, grid on tablet+
 
-This design balances technical credibility with modern web aesthetics, ensuring Phoenix Cloud appears professional, fast, and trustworthy—qualities essential for a hosting provider.
+This design balances technical credibility with modern web aesthetics, ensuring PHEONIX Cloud appears professional, fast, and trustworthy—qualities essential for a hosting provider.
