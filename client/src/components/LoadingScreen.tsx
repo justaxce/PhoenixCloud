@@ -14,7 +14,7 @@ export function LoadingScreen() {
       {/* Text with animated dots */}
       <div className="flex items-center justify-center py-4">
         <span className="text-sm font-semibold text-foreground tracking-wide">
-          PHOENIX CLOUD
+          PHEONIX CLOUD
           <span style={{
             display: 'inline-block',
             marginLeft: '0.4em',
