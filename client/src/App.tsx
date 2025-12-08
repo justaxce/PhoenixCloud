@@ -18,6 +18,7 @@ import About from "@/pages/About";
 import Support from "@/pages/Support";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
+import RefundPolicy from "@/pages/RefundPolicy";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/support" component={() => <Support categories={categories} discordLink={settings.supportLink} />} />
       <Route path="/terms" component={() => <Terms categories={categories} />} />
       <Route path="/privacy" component={() => <Privacy categories={categories} />} />
+      <Route path="/refund-policy" component={() => <RefundPolicy categories={categories} />} />
       <Route path="/admin" component={AdminLogin} />
       <Route path="/admin/dashboard" component={() => <ProtectedRoute component={AdminDashboard} />} />
       <Route component={NotFound} />
